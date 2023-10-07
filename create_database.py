@@ -5,15 +5,15 @@ if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",
                   "Rooms--4", "Nurses--5", "Nurse_Patient_Room--6", "Hospital_Staff--7",
                   "Login--8"]
-    selected_table = all_tables[8]
+    selected_table = None  # all_tables[8]
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
 
-    # Patients table
     if selected_table == all_tables[0]:
         cursor.execute('''
+            DROP TABLE Patients;
             CREATE TABLE Patients (
                 patient_id INTEGER PRIMARY KEY,
                 patient_name TEXT,
@@ -21,7 +21,9 @@ if __name__ == "__main__":
                 age INTEGER,
                 gender TEXT,
                 address TEXT,
-                contact_number TEXT
+                contact_number TEXT,
+                room_id INTEGER,
+                FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
             )
         ''')
 
@@ -106,14 +108,14 @@ if __name__ == "__main__":
 
     # Create the login table
     if selected_table == all_tables[8]:
-        # cursor.execute('''
-        #     CREATE TABLE Login (
-        #         username TEXT,
-        #         password TEXT,
-        #         PRIMARY KEY (username, password)
-        #     )
-        # ''')
-        cursor.execute("ALTER TABLE Login ADD COLUMN access_level TEXT")
+        cursor.execute('''
+            CREATE TABLE Login (
+                username TEXT,
+                password TEXT,
+                PRIMARY KEY (username, password),
+                realname TEXT
+            )
+        ''')
 
     # Commit the changes and close the connection
     conn.commit()

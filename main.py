@@ -64,6 +64,7 @@ def system_entry():
 def register():
     def register_account():
         new_username = entry_new_username.get()
+        new_realname = entry_new_realname.get()
         new_password = entry_new_password.get()
         access_level = entry_access_level.get()
 
@@ -75,6 +76,16 @@ def register():
         # Check if the username contains valid characters
         if not re.match(r'^[0-9a-zA-Z_$%#]+$', new_username):
             messagebox.showerror("Login Failed", "Invalid characters in the username")
+            return False
+
+        # Check if the realname is empty
+        if not new_realname:
+            messagebox.showerror("Registration Failed", "Please enter a real name")
+            return False
+
+        # Check if the realname contains only letters, spaces, or tabs
+        if not re.match(r'^[a-zA-Z\s\t]+$', new_realname):
+            messagebox.showerror("Registration Failed", "Real name should contain only letters, spaces, or tabs")
             return False
 
         # Check if the password meets the length requirement
@@ -91,10 +102,10 @@ def register():
 
         try:
             access_level = int(access_level)
-            if access_level < 1 or access_level > 4:
+            if access_level < 1 or access_level > 5:  # patient, doctor, nurse, administrator, other hospital staff
                 raise ValueError
         except ValueError:
-            messagebox.showerror("Invalid Input", "Access level must be an integer between 1 and 4.")
+            messagebox.showerror("Invalid Input", "Access level must be an integer between 1 and 5.")
             return False
 
         # Check if the account has already been registered
@@ -128,21 +139,27 @@ def register():
     entry_new_username = tk.Entry(register_window, width=30)
     entry_new_username.place(x=220, y=100)
 
+    # Create the new realname label and entry
+    label_new_realname = tk.Label(register_window, text="New Realname:")
+    label_new_realname.place(x=120, y=150)
+    entry_new_realname = tk.Entry(register_window, width=30)
+    entry_new_realname.place(x=220, y=150)
+
     # Create the new password label and entry
     label_new_password = tk.Label(register_window, text="New Password:")
-    label_new_password.place(x=120, y=150)
+    label_new_password.place(x=120, y=200)
     entry_new_password = tk.Entry(register_window, show="*", width=30)
-    entry_new_password.place(x=220, y=150)
+    entry_new_password.place(x=220, y=200)
 
     # Create the access level label and entry
     label_access_level = tk.Label(register_window, text="Access Level:")
-    label_access_level.place(x=120, y=200)
+    label_access_level.place(x=120, y=250)
     entry_access_level = tk.Entry(register_window, width=5)
-    entry_access_level.place(x=220, y=200)
+    entry_access_level.place(x=220, y=250)
 
     # Create the register button
     button_confirm = tk.Button(register_window, text="Register", command=register_account)
-    button_confirm.place(x=250, y=240)
+    button_confirm.place(x=250, y=290)
 
 
 # Create the login window
