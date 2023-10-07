@@ -1,14 +1,38 @@
 import tkinter as tk
 from tkinter import messagebox
 import sqlite3
+import re
 
 
 def verify_login():
     username = entry_username.get()
     password = entry_password.get()
 
+    # Check if the username is empty
+    if not username:
+        messagebox.showerror("Login Failed", "Please enter a username")
+        return False
+
+    # Check if the username contains valid characters
+    if not re.match(r'^[0-9a-zA-Z_$%#]+$', username):
+        messagebox.showerror("Login Failed", "Invalid characters in the username")
+        return False
+
+    # Check if the password meets the length requirement
+    if len(password) < 8:
+        messagebox.showerror("Login Failed", "Password should be at least 8 characters long")
+        return False
+
+    # Check if the password contains at least one digit, one lowercase, and one uppercase letter
+    if not re.search(r'\d', password) or not re.search(r'[a-z]', password) or not re.search(r'[A-Z]', password):
+        messagebox.showerror("Login Failed",
+                             "Password should contain at least one digit, one lowercase, and one uppercase letter")
+        return False
+
+    # Perform other basic login validation checks here...
+
     # Connect to the database
-    conn = sqlite3.connect('hospital.db')
+    conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
 
     # Execute the SQL query to check if the username and password exist in the Login table
@@ -23,25 +47,18 @@ def verify_login():
         messagebox.showinfo("Login Successful", "Welcome, {}!".format(username))
         # Destroy the login window
         window.destroy()
-
-        # Create the main application window
-        main_window = tk.Tk()
-        main_window.title("Main Application")
-        # Add your code here to configure the main application window and display its contents
         return True
     else:
         messagebox.showerror("Login Failed", "Invalid username or password")
         return False
 
 
-def handle_login():
+def system_entry():
     if verify_login():
-        # Proceed to the main application or perform other actions
-        print("login success")
-        exit(0)
-    else:
-        # Handle login failure
-        pass
+        # Create the main application window
+        main_window = tk.Tk()
+        main_window.title("Main Application")
+        main_window.mainloop()
 
 
 def register():
@@ -50,10 +67,27 @@ def register():
         new_password = entry_new_password.get()
         access_level = entry_access_level.get()
 
-        # Validate the input
-        if not new_username.isidentifier() or not new_password.isidentifier():
-            messagebox.showerror("Invalid Input", "Username and password must follow traditional naming conventions.")
-            return
+        # Check if the username is empty
+        if not new_username:
+            messagebox.showerror("Login Failed", "Please enter a username")
+            return False
+
+        # Check if the username contains valid characters
+        if not re.match(r'^[0-9a-zA-Z_$%#]+$', new_username):
+            messagebox.showerror("Login Failed", "Invalid characters in the username")
+            return False
+
+        # Check if the password meets the length requirement
+        if len(new_password) < 8:
+            messagebox.showerror("Login Failed", "Password should be at least 8 characters long")
+            return False
+
+        # Check if the password contains at least one digit, one lowercase, and one uppercase letter
+        if not re.search(r'\d', new_password) or not re.search(r'[a-z]', new_password) or not re.search(r'[A-Z]',
+                                                                                                        new_password):
+            messagebox.showerror("Login Failed",
+                                 "Password should contain at least one digit, one lowercase, and one uppercase letter")
+            return False
 
         try:
             access_level = int(access_level)
@@ -61,10 +95,10 @@ def register():
                 raise ValueError
         except ValueError:
             messagebox.showerror("Invalid Input", "Access level must be an integer between 1 and 4.")
-            return
+            return False
 
         # Check if the account has already been registered
-        conn = sqlite3.connect('hospital.db')
+        conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM Login WHERE username = ?", (new_username,))
         result = cursor.fetchone()
@@ -74,7 +108,7 @@ def register():
             messagebox.showerror("Registration Failed", "Username already exists.")
         else:
             # Insert the new account into the Login table
-            conn = sqlite3.connect('hospital.db')
+            conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
             cursor.execute("INSERT INTO Login (username, password, access_level) VALUES (?, ?, ?)",
                            (new_username, new_password, access_level))
@@ -129,7 +163,7 @@ entry_password = tk.Entry(window, show="*", width=30)
 entry_password.place(x=250, y=150)
 
 # Create the login button
-button_login = tk.Button(window, text="Login", command=handle_login)
+button_login = tk.Button(window, text="Login", command=system_entry)
 button_login.place(x=200, y=230)
 
 # Create the register button
