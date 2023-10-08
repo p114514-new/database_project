@@ -5,7 +5,7 @@ if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",
                   "Rooms--4", "Nurses--5", "Nurse_Patient_Room--6", "Hospital_Staff--7",
                   "Login--8"]
-    selected_table = None  # all_tables[8]
+    selected_table = all_tables[0]
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -23,6 +23,7 @@ if __name__ == "__main__":
                 address TEXT,
                 contact_number TEXT,
                 room_id INTEGER,
+                bed_id INTEGER,
                 FOREIGN KEY (room_id) REFERENCES Rooms(room_id)
             )
         ''')
@@ -43,7 +44,6 @@ if __name__ == "__main__":
                 doctor_id INTEGER PRIMARY KEY,
                 doctor_name TEXT,
                 department_id INTEGER,
-                is_verified INTEGER,
                 FOREIGN KEY (department_id) REFERENCES Departments(department_id)
             )
         ''')
@@ -112,8 +112,9 @@ if __name__ == "__main__":
             CREATE TABLE Login (
                 username TEXT,
                 password TEXT,
-                PRIMARY KEY (username, password),
-                realname TEXT
+                realname TEXT,
+                access_level INTEGER,
+                PRIMARY KEY (realname, password)
             )
         ''')
 
