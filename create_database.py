@@ -4,8 +4,8 @@ import tkinter as tk
 if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",
                   "Rooms--4", "Nurses--5", "Nurse_Patient_Room--6", "Hospital_Staff--7",
-                  "Login--8"]
-    selected_table = all_tables[0]
+                  "Login--8", "Buffer1--9", "Buffer2--10"]
+    selected_table = all_tables[10]
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -115,6 +115,28 @@ if __name__ == "__main__":
                 realname TEXT,
                 access_level INTEGER,
                 PRIMARY KEY (realname, password)
+            )
+        ''')
+
+    # Buffer1 table
+    if selected_table == all_tables[9]:
+        cursor.execute('''
+            CREATE TABLE Buffer1 (
+                doctor_id INTEGER PRIMARY KEY,
+                doctor_name TEXT,
+                department_id INTEGER,
+                change_status CHAR(1) CHECK (change_status IN ('+', '-')),
+                FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+            )
+        ''')
+
+    # Buffer2 table
+    if selected_table == all_tables[10]:
+        cursor.execute('''
+            CREATE TABLE Buffer2 (
+                department_id INTEGER PRIMARY KEY,
+                department_name TEXT,
+                change_status CHAR(1) CHECK (change_status IN ('+', '-'))
             )
         ''')
 

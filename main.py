@@ -2,63 +2,11 @@ import tkinter as tk
 from tkinter import messagebox
 import sqlite3
 import re
-
-
-def verify_login():
-    username = entry_username.get()
-    password = entry_password.get()
-
-    # Check if the username is empty
-    if not username:
-        messagebox.showerror("Login Failed", "Please enter a username")
-        return False
-
-    # Check if the username contains valid characters
-    if not re.match(r'^[0-9a-zA-Z_$%#]+$', username):
-        messagebox.showerror("Login Failed", "Invalid characters in the username")
-        return False
-
-    # Check if the password meets the length requirement
-    if len(password) < 8:
-        messagebox.showerror("Login Failed", "Password should be at least 8 characters long")
-        return False
-
-    # Check if the password contains at least one digit, one lowercase, and one uppercase letter
-    if not re.search(r'\d', password) or not re.search(r'[a-z]', password) or not re.search(r'[A-Z]', password):
-        messagebox.showerror("Login Failed",
-                             "Password should contain at least one digit, one lowercase, and one uppercase letter")
-        return False
-
-    # Perform other basic login validation checks here...
-
-    # Connect to the database
-    conn = sqlite3.connect('hospital_database.db')
-    cursor = conn.cursor()
-
-    # Execute the SQL query to check if the username and password exist in the Login table
-    cursor.execute("SELECT * FROM Login WHERE username = ? AND password = ?", (username, password))
-    result = cursor.fetchone()
-
-    # Close the database connection
-    conn.close()
-
-    # Check if the login credentials are valid
-    if result:
-        messagebox.showinfo("Login Successful", "Welcome, {}!".format(username))
-        # Destroy the login window
-        window.destroy()
-        return True
-    else:
-        messagebox.showerror("Login Failed", "Invalid username or password")
-        return False
-
-
-def system_entry():
-    if verify_login():
-        # Create the main application window
-        main_window = tk.Tk()
-        main_window.title("Main Application")
-        main_window.mainloop()
+from patient_application import patient_application_entry_window
+from doctor_application import doctor_application_entry_window
+from nurse_application import nurse_application_entry_window
+from admin_application import admin_application_entry_window
+from hospital_staff_application import hospital_staff_application_entry_window
 
 
 def register():
@@ -162,30 +110,101 @@ def register():
     button_confirm.place(x=250, y=290)
 
 
-# Create the login window
-window = tk.Tk()
-window.title("Login")
-window.geometry("600x400")
+def verify_login(entry_username, entry_password, window):
+    username = entry_username.get()
+    password = entry_password.get()
 
-# Create the username label and entry
-label_username = tk.Label(window, text="Username:")
-label_username.place(x=150, y=100)
-entry_username = tk.Entry(window, width=30)
-entry_username.place(x=250, y=100)
+    # Check if the username is empty
+    if not username:
+        messagebox.showerror("Login Failed", "Please enter a username")
+        return -1
 
-# Create the password label and entry
-label_password = tk.Label(window, text="Password:")
-label_password.place(x=150, y=150)
-entry_password = tk.Entry(window, show="*", width=30)
-entry_password.place(x=250, y=150)
+    # Check if the username contains valid characters
+    if not re.match(r'^[0-9a-zA-Z_$%#]+$', username):
+        messagebox.showerror("Login Failed", "Invalid characters in the username")
+        return -1
 
-# Create the login button
-button_login = tk.Button(window, text="Login", command=system_entry)
-button_login.place(x=200, y=230)
+    # Check if the password meets the length requirement
+    if len(password) < 8:
+        messagebox.showerror("Login Failed", "Password should be at least 8 characters long")
+        return -1
 
-# Create the register button
-button_register = tk.Button(window, text="Register", command=register)
-button_register.place(x=300, y=230)
+    # Check if the password contains at least one digit, one lowercase, and one uppercase letter
+    if not re.search(r'\d', password) or not re.search(r'[a-z]', password) or not re.search(r'[A-Z]', password):
+        messagebox.showerror("Login Failed",
+                             "Password should contain at least one digit, one lowercase, and one uppercase letter")
+        return -1
 
-# Start the Tkinter event loop
-window.mainloop()
+    # Perform other basic login validation checks here...
+
+    # Connect to the database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    # Execute the SQL query to check if the username and password exist in the Login table
+    cursor.execute("SELECT * FROM Login WHERE username = ? AND password = ?", (username, password))
+    result = cursor.fetchone()
+
+    # Close the database connection
+    conn.close()
+
+    # Check if the login credentials are valid
+    if result:
+        messagebox.showinfo("Login Successful", "Welcome, {}!".format(username))
+        # Destroy the login window
+        window.destroy()
+        return result[-1]
+    else:
+        messagebox.showerror("Login Failed", "Invalid username or password")
+        return -1
+
+
+def system_entry(entry_username, entry_password, window):
+    user_access = verify_login(entry_username, entry_password, window)
+    if user_access == 1:
+        # Create the patient application window
+        patient_application_entry_window()
+    elif user_access == 2:
+        # Create the doctor application window
+        doctor_application_entry_window()
+    elif user_access == 3:
+        # Create the nurse application window
+        nurse_application_entry_window()
+    elif user_access == 4:
+        # Create the admin application window
+        admin_application_entry_window()
+    elif user_access == 5:
+        # Create the hospital staff application window
+        hospital_staff_application_entry_window()
+
+
+def create_login_window():
+    window = tk.Tk()
+    window.title("Login")
+    window.geometry("600x400")
+
+    # Create the username label and entry
+    label_username = tk.Label(window, text="Username:")
+    label_username.place(x=150, y=100)
+    entry_username = tk.Entry(window, width=30)
+    entry_username.place(x=250, y=100)
+
+    # Create the password label and entry
+    label_password = tk.Label(window, text="Password:")
+    label_password.place(x=150, y=150)
+    entry_password = tk.Entry(window, show="*", width=30)
+    entry_password.place(x=250, y=150)
+
+    # Create the login button
+    button_login = tk.Button(window, text="Login", command=lambda: system_entry(entry_username, entry_password, window))
+    button_login.place(x=200, y=230)
+
+    # Create the register button
+    button_register = tk.Button(window, text="Register", command=register)
+    button_register.place(x=300, y=230)
+
+    # Start the Tkinter event loop
+    window.mainloop()
+
+
+create_login_window()
