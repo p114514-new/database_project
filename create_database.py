@@ -125,7 +125,7 @@ if __name__ == "__main__":
                 doctor_id INTEGER PRIMARY KEY,
                 doctor_name TEXT,
                 department_id INTEGER,
-                change_status CHAR(1) CHECK (change_status IN ('+', '-')),
+                change_status CHAR(1) CHECK (change_status IN ('+', '?', '-')),
                 FOREIGN KEY (department_id) REFERENCES Departments(department_id)
             )
         ''')
@@ -136,7 +136,7 @@ if __name__ == "__main__":
             CREATE TABLE Buffer2 (
                 department_id INTEGER PRIMARY KEY,
                 department_name TEXT,
-                change_status CHAR(1) CHECK (change_status IN ('+', '-'))
+                change_status CHAR(1) CHECK (change_status IN ('+', '?', '-'))
             )
         ''')
 
