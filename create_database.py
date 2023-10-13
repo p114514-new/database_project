@@ -5,7 +5,7 @@ if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",
                   "Rooms--4", "Nurses--5", "Nurse_Patient_Room--6", "Hospital_Staff--7",
                   "Login--8", "Buffer1--9", "Buffer2--10"]
-    selected_table = all_tables[10]
+    selected_table = all_tables[3]
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -44,7 +44,7 @@ if __name__ == "__main__":
                 doctor_id INTEGER PRIMARY KEY,
                 doctor_name TEXT,
                 department_id INTEGER,
-                FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+                FOREIGN KEY (department_id) REFERENCES Departments(department_id) ON DELETE CASCADE
             )
         ''')
 

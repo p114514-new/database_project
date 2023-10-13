@@ -69,6 +69,9 @@ def register():
             # Insert the new account into the Login table
             conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
+            # Enable foreign key constraints
+            conn.execute('PRAGMA foreign_keys = ON')
+
             cursor.execute("INSERT INTO Login (username, password, access_level) VALUES (?, ?, ?)",
                            (new_username, new_password, access_level))
             conn.commit()
