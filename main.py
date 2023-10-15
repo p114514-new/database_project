@@ -72,8 +72,8 @@ def register():
             # Enable foreign key constraints
             conn.execute('PRAGMA foreign_keys = ON')
 
-            cursor.execute("INSERT INTO Login (username, password, access_level) VALUES (?, ?, ?)",
-                           (new_username, new_password, access_level))
+            cursor.execute("INSERT INTO Login (username, password, realname,access_level) VALUES (?, ?,?, ?)",
+                           (new_username, new_password,new_realname, access_level))
             conn.commit()
             conn.close()
             messagebox.showinfo("Registration Successful", "Account registered successfully.")
@@ -163,7 +163,26 @@ def verify_login(entry_username, entry_password, window):
 
 
 def system_entry(entry_username, entry_password, window):
+    conn = sqlite3.connect('hospital_database.db')
+    c = conn.cursor()
+    realname = ''
+    try:
+        # Enable foreign key constraints
+        cursor = c.execute("select realname  from Login where Login.username=?", (entry_username.get(),))
+        conn.commit()
+        result = cursor.fetchall()
+
+        realname = result[0][0]
+        print(realname,'ok1')
+
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", e.args[0])
+    except Exception as ee:
+        messagebox.showerror("Error", ee.args[0])
+    c.close()
     user_access = verify_login(entry_username, entry_password, window)
+
+
     if user_access == 1:
         # Create the patient application window
         patient_application_entry_window()
@@ -172,7 +191,7 @@ def system_entry(entry_username, entry_password, window):
         doctor_application_entry_window()
     elif user_access == 3:
         # Create the nurse application window
-        nurse_application_entry_window()
+        nurse_application_entry_window(realname)
     elif user_access == 4:
         # Create the admin application window
         admin_application_entry_window()
