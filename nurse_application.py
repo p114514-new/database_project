@@ -10,10 +10,12 @@ nurse_gender=0
 def exit_to_entry(window):
     window.destroy()
     nurse_application_entry_window_with_info()
+
 def logout(main_window):
     main_window.destroy()
     from main import create_login_window
     create_login_window()
+
 def Responsibility(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -199,9 +201,117 @@ def  Modify_Responsibility_info(main_window):
     modify_window.mainloop()
 
 def Check_patient_profile(main_window):
-    pass
+    main_window.destroy()
+    view_window = tk.Tk()
+    view_window.title("View Table")
+    view_window.geometry("800x600")
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    res = cursor.execute("SELECT * FROM Patients WHERE patient_id in (select patient_id from Nurse_Patient_Room where nurse_id=? )", (nurse_id,))
+    table_data = res.fetchall()
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(view_window)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(view_window)
+    conn.close()
+
+    if table_data:
+        # Create a pandas DataFrame from the table data
+        df = pd.DataFrame(table_data)
+        df.columns = [description[0] for description in cursor.description]
+
+        # Destroy and recreate the columns in the Treeview widget
+        treeview.destroy()
+        treeview = tk.ttk.Treeview(view_window)
+
+        # Create the column headings in the Treeview widget
+        table_columns = df.columns
+        treeview["columns"] = tuple(table_columns)
+        for column in table_columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+        # Insert the table data into the Treeview widget
+        for i, row in df.iterrows():
+            treeview.insert("", "end", values=tuple(row))
+    else:
+        # No data returned, display a message
+        message_label.config(text="No data available for this table.")
+        message_label.pack()
+
+        # No data available, but we can still refresh the column names
+        columns = [description[0] for description in cursor.description]
+        treeview["columns"] = tuple(columns)
+        for column in columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+            # Pack the Treeview widget
+    treeview.pack(expand=True, fill=tk.BOTH)
+
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+
+    exit_button.pack(side=tk.BOTTOM)
+
+    view_window.mainloop()
 def Find_available_rooms(main_window):
-    pass
+    main_window.destroy()
+    view_window = tk.Tk()
+    view_window.title("View Table")
+    view_window.geometry("800x600")
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    res = cursor.execute("SELECT * FROM Rooms")
+    table_data = res.fetchall()
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(view_window)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(view_window)
+    conn.close()
+
+    if table_data:
+        # Create a pandas DataFrame from the table data
+        df = pd.DataFrame(table_data)
+        df.columns = [description[0] for description in cursor.description]
+
+        # Destroy and recreate the columns in the Treeview widget
+        treeview.destroy()
+        treeview = tk.ttk.Treeview(view_window)
+
+        # Create the column headings in the Treeview widget
+        table_columns = df.columns
+        treeview["columns"] = tuple(table_columns)
+        for column in table_columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+        # Insert the table data into the Treeview widget
+        for i, row in df.iterrows():
+            treeview.insert("", "end", values=tuple(row))
+    else:
+        # No data returned, display a message
+        message_label.config(text="No data available for this table.")
+        message_label.pack()
+
+        # No data available, but we can still refresh the column names
+        columns = [description[0] for description in cursor.description]
+        treeview["columns"] = tuple(columns)
+        for column in columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+            # Pack the Treeview widget
+    treeview.pack(expand=True, fill=tk.BOTH)
+
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+
+    exit_button.pack(side=tk.BOTTOM)
+
+    view_window.mainloop()
 def nurse_application_entry_window_with_info():
     main_window = tk.Tk()
     main_window.title("Main Application")
@@ -225,8 +335,6 @@ def nurse_application_entry_window_with_info():
     button5.pack(side=tk.TOP, padx=10, pady=15)
     button6.pack(side=tk.TOP, padx=10, pady=15)
     main_window.mainloop()
-
-
 def nurse_application_entry_window(realname):
     global nurse_id
     global nurse_name
@@ -250,7 +358,65 @@ def nurse_application_entry_window(realname):
 
             except sqlite3.Error as e:
                 messagebox.showerror("Error", e.args[0])
+        else:
+            # Set window size to 600x400
 
+            # Create the new realname label and entry
+            label_nurse_id = tk.Label(main_window, text="nurse_id :")
+            label_nurse_id.place(x=120, y=150)
+            entry_nurse_id = tk.Entry(main_window, width=30)
+            entry_nurse_id.place(x=220, y=150)
+
+            label_nurse_gender = tk.Label(main_window, text="gender :")
+            label_nurse_gender.place(x=120, y=200)
+            entry_nurse_gender = tk.Entry(main_window, width=30)
+            entry_nurse_gender.place(x=220, y=200)
+
+            # Create a connection to the SQLite database
+            def checkAccount():
+                nurse_id = entry_nurse_id.get()
+                nurse_gender = entry_nurse_gender.get()
+                try:
+                    nurse_id = int(nurse_id)
+                except ValueError:
+                    messagebox.showerror("Error", "Invalid Input")
+                    return False
+                conn = sqlite3.connect('hospital_database.db')
+                c = conn.cursor()
+                try:
+                    # Enable foreign key constraints
+                    cursor = c.execute("select nurse_id,nurse_name,gender  from Nurses where Nurses.nurse_id=?",
+                                       (nurse_id,))
+                    conn.commit()
+                    result = cursor.fetchall()
+                    print(result)
+                    if result == []:
+                        try:
+                            c.execute("INSERT INTO Nurses VALUES (?,?,?)", (nurse_id, realname, nurse_gender))
+                            conn.commit()
+                            c.close()
+                            exit_to_entry(main_window)
+
+                        except sqlite3.Error as e:
+                            messagebox.showerror("Error", e.args[0])
+                    else:
+                        messagebox.showerror("Error", "Id has already existed")
+                        c.close()
+
+                except sqlite3.Error as e:
+                    messagebox.showerror("Error", e.args[0])
+                except Exception as ee:
+                    messagebox.showerror("Error", ee.args[0])
+
+            # Create four parallel buttons
+            button1 = tk.Button(main_window, text="ok", command=lambda: checkAccount())
+            button2 = tk.Button(main_window, text="exit", command=lambda: logout(main_window))
+            # Place the buttons vertically
+            button1.pack(side=tk.TOP, padx=10, pady=15)
+            button2.pack(side=tk.TOP, padx=10, pady=15)
+            button1.place(x=150, y=250)
+            button2.place(x=150, y=300)
+            main_window.mainloop()
     except sqlite3.Error as e:
         messagebox.showerror("Error", e.args[0])
     except Exception as ee:
@@ -260,62 +426,5 @@ def nurse_application_entry_window(realname):
 
 
 
-    # Set window size to 600x400
 
-    # Create the new realname label and entry
-    label_nurse_id = tk.Label(main_window, text="nurse_id :")
-    label_nurse_id.place(x=120, y=150)
-    entry_nurse_id  = tk.Entry(main_window, width=30)
-    entry_nurse_id .place(x=220, y=150)
-
-    label_nurse_gender = tk.Label(main_window, text="gender :")
-    label_nurse_gender.place(x=120, y=200)
-    entry_nurse_gender = tk.Entry(main_window, width=30)
-    entry_nurse_gender.place(x=220, y=200)
-
-
-    # Create a connection to the SQLite database
-    def checkAccount():
-        nurse_id = entry_nurse_id.get()
-        nurse_gender = entry_nurse_gender.get()
-        try:
-            nurse_id = int(nurse_id)
-        except ValueError:
-            messagebox.showerror("Error", "Invalid Input")
-            return False
-        conn = sqlite3.connect('hospital_database.db')
-        c = conn.cursor()
-        try:
-            # Enable foreign key constraints
-            cursor = c.execute("select nurse_id,nurse_name,gender  from Nurses where Nurses.nurse_id=?", (nurse_id,))
-            conn.commit()
-            result = cursor.fetchall()
-            print(result)
-            if result == []:
-                try:
-                    c.execute("INSERT INTO Nurses VALUES (?,?,?)", (nurse_id, realname, nurse_gender))
-                    conn.commit()
-                    c.close()
-                    exit_to_entry(main_window)
-
-                except sqlite3.Error as e:
-                    messagebox.showerror("Error", e.args[0])
-            else:
-                    messagebox.showerror("Error", "Id has already existed")
-                    c.close()
-
-        except sqlite3.Error as e:
-            messagebox.showerror("Error", e.args[0])
-        except Exception as ee:
-            messagebox.showerror("Error", ee.args[0])
-
-    # Create four parallel buttons
-    button1 = tk.Button(main_window, text="ok", command=lambda:  checkAccount())
-    button2 = tk.Button(main_window, text="exit", command=lambda: logout(main_window))
-    # Place the buttons vertically
-    button1.pack(side=tk.TOP, padx=10, pady=15)
-    button2.pack(side=tk.TOP, padx=10, pady=15)
-    button1.place(x=150, y=250)
-    button2.place(x=150, y=300)
-    main_window.mainloop()
 
