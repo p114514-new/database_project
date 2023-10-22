@@ -97,12 +97,16 @@ def Modify_self_info(main_window):
         try:
             name = entry_name.get()
             gender = entry_gender.get()
+
             if name == '' or gender == '':
                 messagebox.showerror("Error", 'please fill the blanks')
+            elif gender != 'male' and gender != 'female':
+                messagebox.showerror("Error", "Invalid Input for gender")
+                return False
             else:
                 conn = sqlite3.connect('hospital_database.db')
                 cursor = conn.cursor()
-
+                conn.execute('PRAGMA foreign_keys = ON')
                 original_name = nurse_name
 
                 t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
@@ -149,13 +153,16 @@ def Modify_Responsibility_info(main_window):
     ##modification
     def modify_info():
         try:
-            pid = int(entry_patient_id.get())
-            rid = int(entry_room_id.get())
-            conn = sqlite3.connect('hospital_database.db')
-            cursor = conn.cursor()
-            cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
-            conn.commit()
-            conn.close()
+
+          pid=int(entry_patient_id.get())
+          rid=int(entry_room_id.get())
+          conn = sqlite3.connect('hospital_database.db')
+          cursor = conn.cursor()
+          conn.execute('PRAGMA foreign_keys = ON')
+          cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
+          conn.commit()
+          conn.close()
+
         except:
             messagebox.showerror("Error", "Wrong input")
 
@@ -166,7 +173,10 @@ def Modify_Responsibility_info(main_window):
             rid = int(entry_room_id.get())
             conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?);", (nurse_id, pid, rid))
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("INSERT INTO Nurse_Patient_Room (?,?,?);", (nurse_id, pid, rid))
+
             conn.commit()
             conn.close()
         except:
@@ -178,7 +188,10 @@ def Modify_Responsibility_info(main_window):
             pid = int(entry_patient_id.get())
             conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=?;", (pid,))
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE pid=?;", (pid,))
+
             conn.commit()
             conn.close()
         except:
@@ -211,9 +224,11 @@ def Check_patient_profile(main_window):
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
+
     res = cursor.execute(
         "SELECT * FROM Patients WHERE patient_id in (select patient_id from Nurse_Patient_Room where nurse_id=? )",
         (nurse_id,))
+
     table_data = res.fetchall()
     # Create a tkinter Treeview widget
     treeview = tk.ttk.Treeview(view_window)
@@ -388,6 +403,9 @@ def nurse_application_entry_window(realname):
             def checkAccount():
                 nurse_id = entry_nurse_id.get()
                 nurse_gender = entry_nurse_gender.get()
+                if nurse_gender!='male' or nurse_gender!='female':
+                    messagebox.showerror("Error", "Invalid Input for gender")
+                    return False
                 try:
                     nurse_id = int(nurse_id)
                 except ValueError:
