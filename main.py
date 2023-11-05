@@ -9,6 +9,16 @@ from admin_application import admin_application_entry_window
 from hospital_staff_application import hospital_staff_application_entry_window
 
 
+def setscreen(window, WINDOW_WIDTH=600, WINDOW_HEIGHT=400):
+    SCREEN_WIDTH = window.winfo_screenwidth()
+    SCREEN_HEIGHT = window.winfo_screenheight()
+
+    x = (SCREEN_WIDTH // 2) - (WINDOW_WIDTH // 2)
+    y = (SCREEN_HEIGHT // 2) - (WINDOW_HEIGHT // 2)
+
+    window.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}+{x}+{y}")
+
+
 def register():
     def register_account():
         new_username = entry_new_username.get()
@@ -73,7 +83,7 @@ def register():
             conn.execute('PRAGMA foreign_keys = ON')
 
             cursor.execute("INSERT INTO Login (username, password, realname,access_level) VALUES (?, ?,?, ?)",
-                           (new_username, new_password,new_realname, access_level))
+                           (new_username, new_password, new_realname, access_level))
             conn.commit()
             conn.close()
             messagebox.showinfo("Registration Successful", "Account registered successfully.")
@@ -81,7 +91,7 @@ def register():
 
     # Create the register window
     register_window = tk.Tk()
-    register_window.geometry("600x400")
+    setscreen(register_window)
     register_window.title("Register")
 
     # Create the new username label and entry
@@ -173,7 +183,7 @@ def system_entry(entry_username, entry_password, window):
         result = cursor.fetchall()
 
         realname = result[0][0]
-        print(realname,'ok1')
+        print(realname, 'ok1')
 
     except sqlite3.Error as e:
         messagebox.showerror("Error", e.args[0])
@@ -181,7 +191,6 @@ def system_entry(entry_username, entry_password, window):
         messagebox.showerror("Error", ee.args[0])
     c.close()
     user_access = verify_login(entry_username, entry_password, window)
-
 
     if user_access == 1:
         # Create the patient application window
@@ -203,7 +212,8 @@ def system_entry(entry_username, entry_password, window):
 def create_login_window():
     window = tk.Tk()
     window.title("Login")
-    window.geometry("600x400")
+
+    setscreen(window)
 
     # Create the username label and entry
     label_username = tk.Label(window, text="Username:")
@@ -229,4 +239,5 @@ def create_login_window():
     window.mainloop()
 
 
-create_login_window()
+if __name__ == "__main__":
+    create_login_window()

@@ -24,7 +24,8 @@ def Responsibility(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("View Table")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
@@ -82,7 +83,8 @@ def Modify_self_info(main_window):
     main_window.destroy()
     modify_window = tk.Tk()
     modify_window.title("modification")
-    modify_window.geometry("800x600")
+    from main import setscreen
+    setscreen(modify_window, 800, 600)
     label_name = tk.Label(modify_window, text="name:")
     label_name.place(x=120, y=150)
     entry_name = tk.Entry(modify_window, width=30)
@@ -135,7 +137,8 @@ def Modify_Responsibility_info(main_window):
     main_window.destroy()
     modify_window = tk.Tk()
     modify_window.title("modification")
-    modify_window.geometry("800x600")
+    from main import setscreen
+    setscreen(modify_window, 800, 600)
     label_patient_id = tk.Label(modify_window, text="patient_id :")
     label_patient_id.place(x=120, y=150)
     entry_patient_id = tk.Entry(modify_window, width=30)
@@ -207,7 +210,8 @@ def Check_patient_profile(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("View Table")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
@@ -267,7 +271,8 @@ def Find_available_rooms(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("View Table")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
@@ -324,7 +329,8 @@ def Find_available_rooms(main_window):
 def nurse_application_entry_window_with_info():
     main_window = tk.Tk()
     main_window.title("Main Application")
-    main_window.geometry("600x400")  # Set window size to 600x400
+    from main import setscreen
+    setscreen(main_window, 600, 400)
 
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="Responsibility", command=lambda: Responsibility(main_window))
@@ -354,7 +360,8 @@ def nurse_application_entry_window(realname):
     nurse_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
-    main_window.geometry("600x400")
+    from main import setscreen
+    setscreen(main_window, 600, 400)
     conn = sqlite3.connect('hospital_database.db')
     c = conn.cursor()
     try:

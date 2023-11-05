@@ -191,7 +191,8 @@ def view_tables(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("View Table")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -243,6 +244,7 @@ def view_tables(main_window):
             # Create the column headings in the Treeview widget
             table_columns = df.columns
             treeview["columns"] = tuple(table_columns)
+            treeview["show"] = "headings"
             for column in table_columns:
                 treeview.heading(column, text=column)
                 treeview.column(column, width=100)
@@ -285,7 +287,8 @@ def confirm_doctors_info(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("Confirm Doctor Table Info")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -332,7 +335,8 @@ def confirm_departments_info(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("Confirm Department Table Info")
-    view_window.geometry("800x600")
+    from main import setscreen
+    setscreen(view_window, 800, 600)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -395,7 +399,8 @@ def query_by_SQL():
     # Create a new window
     query_window = tk.Tk()
     query_window.title("Confirm Department Table Info")
-    query_window.geometry("800x600")
+    from main import setscreen
+    setscreen(query_window, 800, 600)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -425,7 +430,8 @@ def logout(main_window):
 def admin_application_entry_window():
     main_window = tk.Tk()
     main_window.title("Main Application")
-    main_window.geometry("600x400")  # Set window size to 600x400
+    from main import setscreen
+    setscreen(main_window, 600, 400)
 
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="view table", command=lambda: view_tables(main_window))
