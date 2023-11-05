@@ -178,7 +178,7 @@ def Modify_Responsibility_info(main_window):
             cursor = conn.cursor()
 
             conn.execute('PRAGMA foreign_keys = ON')
-            cursor.execute("INSERT INTO Nurse_Patient_Room (?,?,?);", (nurse_id, pid, rid))
+            cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
 
             conn.commit()
             conn.close()
@@ -193,7 +193,7 @@ def Modify_Responsibility_info(main_window):
             cursor = conn.cursor()
 
             conn.execute('PRAGMA foreign_keys = ON')
-            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE pid=?;", (pid,))
+            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=?;", (pid,))
 
             conn.commit()
             conn.close()
