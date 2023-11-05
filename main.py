@@ -210,10 +210,16 @@ def system_entry(entry_username, entry_password, window):
 
 
 def create_login_window():
+    def _quit():
+        window.quit()
+        window.destroy()
+
     window = tk.Tk()
     window.title("Login")
 
     setscreen(window)
+
+    window.protocol("WM_DELETE_WINDOW", _quit)
 
     # Create the username label and entry
     label_username = tk.Label(window, text="Username:")
@@ -234,10 +240,10 @@ def create_login_window():
     # Create the register button
     button_register = tk.Button(window, text="Register", command=register)
     button_register.place(x=300, y=230)
-
+    print(__name__, 'name')
     # Start the Tkinter event loop
     window.mainloop()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     create_login_window()
