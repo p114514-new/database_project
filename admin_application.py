@@ -187,6 +187,32 @@ def deny_buffer_2(treeview):
         messagebox.showinfo("Deny", "Please select a row to deny.")
 
 
+def search_views(treeview, table, search_entry, search_column):
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    name = search_entry.get().strip()  # Get the entered doctor's name
+
+    if name == "":
+        # If the search entry is empty, query the entire Doctors table
+        cursor.execute(f"SELECT * FROM {table}")
+    else:
+        # Otherwise, search for the entered doctor's name
+        cursor.execute(f"SELECT * FROM " + table + " WHERE " + search_column[table] + " =?", (name,))
+
+    search_results = cursor.fetchall()
+    conn.close()
+
+    # Clear the Treeview
+    treeview.delete(*treeview.get_children())
+
+    # Insert data into the Treeview
+    for i, row in enumerate(search_results, start=1):
+        # Add 'I' prefix and zero-padding to the index
+        index = 'I' + str(i).zfill(3)
+        treeview.insert("", "end", iid=index, values=row)
+
+
 def view_tables(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -207,6 +233,28 @@ def view_tables(main_window):
     # Remove the buffer tables from the options list
     options = [table[0] for table in tables if table[0] not in ["Buffer1", "Buffer2", "Login"]]
 
+    # Create a search module
+    search_frame = tk.Frame(view_window)
+    name_for_search_frame = {'Patients': 'Patient Name', 'Departments': 'Department Name', 'Doctors': 'Doctor Name',
+                             'Hospital_Staff': 'Staff Name', 'Nurses': 'Nurse Name', 'Rooms': 'Room id',
+                             'Nurse_Patient_Room': 'Patient id', 'Treatments': 'Patient id'
+                             }
+    search_column = {'Patients': 'patient_name', 'Departments': 'department_name', 'Doctors': 'doctor_name',
+                     'Hospital_Staff': 'staff_name', 'Nurses': 'nurse_name', 'Rooms': 'room_id',
+                     'Nurse_Patient_Room': 'patient_id', 'Treatments': 'patient_id'
+                     }
+    search_label = tk.Label(search_frame, text=f"Search for {name_for_search_frame[options[0]]}: ")
+    search_entry = tk.Entry(search_frame)
+    search_button = tk.Button(search_frame, text="Search", command=lambda: search_views(treeview, options[0], search_entry, search_column))
+    default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, options[0]))
+
+    # Pack the search module
+    search_frame.pack(pady=10)
+    search_label.pack(side=tk.LEFT)
+    search_entry.pack(side=tk.LEFT, padx=5)
+    search_button.pack(side=tk.LEFT)
+    default_button.pack(side=tk.LEFT, padx=5)
+
     # Create a tkinter Treeview widget
     treeview = tk.ttk.Treeview(view_window)
 
@@ -215,6 +263,10 @@ def view_tables(main_window):
 
     def on_selection_changed(selection):
         nonlocal treeview, message_label
+
+        search_label.config(text=f"Search for {name_for_search_frame[selection]}: ")
+        search_button.config(command=lambda: search_views(treeview, selection, search_entry, search_column))
+        default_button.config(command=lambda: refresh_treeview(treeview, selection))
 
         # Clear any previous data in the Treeview widget
         treeview.delete(*treeview.get_children())
@@ -283,12 +335,52 @@ def view_tables(main_window):
     view_window.mainloop()
 
 
+def search_doctors(treeview, search_entry):
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    doctor_name = search_entry.get().strip()  # Get the entered doctor's name
+
+    if doctor_name == "":
+        # If the search entry is empty, query the entire Doctors table
+        cursor.execute("SELECT * FROM Buffer1")
+    else:
+        # Otherwise, search for the entered doctor's name
+        cursor.execute("SELECT * FROM Buffer1 WHERE doctor_name=?", (doctor_name,))
+
+    search_results = cursor.fetchall()
+    conn.close()
+
+    # Clear the Treeview
+    treeview.delete(*treeview.get_children())
+
+    # Insert data into the Treeview
+    for i, row in enumerate(search_results, start=1):
+        # Add 'I' prefix and zero-padding to the index
+        index = 'I' + str(i).zfill(3)
+        treeview.insert("", "end", iid=index, values=row)
+
+
 def confirm_doctors_info(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("Confirm Doctor Table Info")
     from main import setscreen
     setscreen(view_window, 800, 600)
+
+    # Create a search module
+    search_frame = tk.Frame(view_window)
+    search_label = tk.Label(search_frame, text="Search for Doctor's Name: ")
+    search_entry = tk.Entry(search_frame)
+    search_button = tk.Button(search_frame, text="Search", command=lambda: search_doctors(treeview, search_entry))
+    default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, 'Buffer1'))
+
+    # Pack the search module
+    search_frame.pack(pady=10)
+    search_label.pack(side=tk.LEFT)
+    search_entry.pack(side=tk.LEFT, padx=5)
+    search_button.pack(side=tk.LEFT)
+    default_button.pack(side=tk.LEFT, padx=5)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -331,12 +423,52 @@ def confirm_doctors_info(main_window):
     view_window.mainloop()
 
 
+def search_departments(treeview, search_entry):
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    department_name = search_entry.get().strip()  # Get the entered doctor's name
+
+    if department_name == "":
+        # If the search entry is empty, query the entire Doctors table
+        cursor.execute("SELECT * FROM Buffer2")
+    else:
+        # Otherwise, search for the entered doctor's name
+        cursor.execute("SELECT * FROM Buffer2 WHERE department_name=?", (department_name,))
+
+    search_results = cursor.fetchall()
+    conn.close()
+
+    # Clear the Treeview
+    treeview.delete(*treeview.get_children())
+
+    # Insert data into the Treeview
+    for i, row in enumerate(search_results, start=1):
+        # Add 'I' prefix and zero-padding to the index
+        index = 'I' + str(i).zfill(3)
+        treeview.insert("", "end", iid=index, values=row)
+
+
 def confirm_departments_info(main_window):
     main_window.destroy()
     view_window = tk.Tk()
     view_window.title("Confirm Department Table Info")
     from main import setscreen
     setscreen(view_window, 800, 600)
+
+    # Create a search module
+    search_frame = tk.Frame(view_window)
+    search_label = tk.Label(search_frame, text="Search for Department's Name: ")
+    search_entry = tk.Entry(search_frame)
+    search_button = tk.Button(search_frame, text="Search", command=lambda: search_departments(treeview, search_entry))
+    default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, 'Buffer2'))
+
+    # Pack the search module
+    search_frame.pack(pady=10)
+    search_label.pack(side=tk.LEFT)
+    search_entry.pack(side=tk.LEFT, padx=5)
+    search_button.pack(side=tk.LEFT)
+    default_button.pack(side=tk.LEFT, padx=5)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')

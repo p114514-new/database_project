@@ -3,6 +3,8 @@ from tkinter import messagebox
 from tkinter.ttk import Treeview
 import pandas as pd
 import sqlite3
+
+
 def Check_patient_profile(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -15,7 +17,7 @@ def Check_patient_profile(main_window):
 
     res = cursor.execute(
         "SELECT * FROM Patients ",
-       )
+    )
 
     table_data = res.fetchall()
     # Create a tkinter Treeview widget
@@ -64,6 +66,8 @@ def Check_patient_profile(main_window):
     exit_button.pack(side=tk.BOTTOM)
 
     view_window.mainloop()
+
+
 def Check_doctors(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -83,7 +87,7 @@ def Check_doctors(main_window):
     res = cursor.execute(
         "SELECT * FROM Doctors "
     )
-    print( [description[0] for description in cursor.description])
+    print([description[0] for description in cursor.description])
     des = [description[0] for description in cursor.description]
     print(des)
     treeview = tk.ttk.Treeview(view_window)
@@ -91,7 +95,8 @@ def Check_doctors(main_window):
     # Create a label for displaying messages
     message_label = tk.Label(view_window)
 
-    button0 = tk.Button(view_window, text=" search", command=lambda: get_department_id(treeview, res,view_window,entry_Department_id,des))
+    button0 = tk.Button(view_window, text=" search",
+                        command=lambda: get_department_id(treeview, res, view_window, entry_Department_id, des))
     button0.pack()
     if table_data:
         # Create a pandas DataFrame from the table data
@@ -126,31 +131,30 @@ def Check_doctors(main_window):
             treeview.heading(column, text=column)
             treeview.column(column, width=100)
 
-
             # Pack the Treeview widget
     treeview.pack(expand=True, fill=tk.BOTH)
     exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
     exit_button.pack()
     view_window.mainloop()
-def get_department_id(treeview,res,view_window,entry_Department_id,des):
 
-        Department_id = entry_Department_id.get()
-        conn = sqlite3.connect('hospital_database.db')
-        cursor = conn.cursor()
-        if Department_id:
-            res = cursor.execute(
-                "SELECT * FROM Doctors where Doctors.department_id=?", (int(Department_id),)
-            )
-        else:
-            res = cursor.execute(
-                "SELECT * FROM Doctors "
-            )
-        refresh(treeview,res,view_window,des)
 
+def get_department_id(treeview, res, view_window, entry_Department_id, des):
+    Department_id = entry_Department_id.get()
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    if Department_id:
+        res = cursor.execute(
+            "SELECT * FROM Doctors where Doctors.department_id=?", (int(Department_id),)
+        )
+    else:
+        res = cursor.execute(
+            "SELECT * FROM Doctors "
+        )
+    refresh(treeview, res, view_window, des)
 
 
 ##不知道为什么treeview没有刷新
-def refresh(treeview,res,view_window,des):
+def refresh(treeview, res, view_window, des):
     table_data = res.fetchall()
     # Create a label for displaying messages
     message_label = tk.Label(view_window)
@@ -159,9 +163,9 @@ def refresh(treeview,res,view_window,des):
     if table_data:
         # Create a pandas DataFrame from the table data
         df = pd.DataFrame(table_data)
-        print(cursor.description,'ds')
+        print(cursor.description, 'ds')
         print(df)
-        df.columns =des
+        df.columns = des
 
         # Destroy and recreate the columns in the Treeview widget
         treeview.destroy()
@@ -189,10 +193,14 @@ def refresh(treeview,res,view_window,des):
             treeview.heading(column, text=column)
             treeview.column(column, width=100)
     treeview.pack(expand=True, fill=tk.BOTH)
+
+
 def logout(main_window):
     main_window.destroy()
     from main import create_login_window
     create_login_window()
+
+
 def exit_to_entry(window):
     window.destroy()
     hospital_staff_application_entry_window()
@@ -204,6 +212,7 @@ def get_row_data(treeview, rows):
         item_id = treeview.get_children()[row]
         values.append(treeview.item(item_id)['values'])
     return values
+
 
 def hospital_staff_application_entry_window():
     main_window = tk.Tk()
