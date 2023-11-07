@@ -198,7 +198,7 @@ def search_views(treeview, table, search_entry, search_column):
         cursor.execute(f"SELECT * FROM {table}")
     else:
         # Otherwise, search for the entered doctor's name
-        cursor.execute(f"SELECT * FROM " + table + " WHERE " + search_column[table] + " =?", (name,))
+        cursor.execute("SELECT * FROM " + table + " WHERE " + search_column[table] + " LIKE ?", ('%' + name + '%',))
 
     search_results = cursor.fetchall()
     conn.close()
@@ -245,7 +245,8 @@ def view_tables(main_window):
                      }
     search_label = tk.Label(search_frame, text=f"Search for {name_for_search_frame[options[0]]}: ")
     search_entry = tk.Entry(search_frame)
-    search_button = tk.Button(search_frame, text="Search", command=lambda: search_views(treeview, options[0], search_entry, search_column))
+    search_button = tk.Button(search_frame, text="Search",
+                              command=lambda: search_views(treeview, options[0], search_entry, search_column))
     default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, options[0]))
 
     # Pack the search module
@@ -346,7 +347,7 @@ def search_doctors(treeview, search_entry):
         cursor.execute("SELECT * FROM Buffer1")
     else:
         # Otherwise, search for the entered doctor's name
-        cursor.execute("SELECT * FROM Buffer1 WHERE doctor_name=?", (doctor_name,))
+        cursor.execute("SELECT * FROM Buffer1 WHERE doctor_name LIKE ?", ('%' + doctor_name + '%',))
 
     search_results = cursor.fetchall()
     conn.close()
@@ -434,7 +435,7 @@ def search_departments(treeview, search_entry):
         cursor.execute("SELECT * FROM Buffer2")
     else:
         # Otherwise, search for the entered doctor's name
-        cursor.execute("SELECT * FROM Buffer2 WHERE department_name=?", (department_name,))
+        cursor.execute("SELECT * FROM Buffer2 WHERE Buffer2.department_name LIKE ?", ('%' + department_name + '%',))
 
     search_results = cursor.fetchall()
     conn.close()
