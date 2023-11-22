@@ -21,6 +21,7 @@ def logout(main_window):
     main_window.destroy()
     from main import create_login_window
     create_login_window()
+
 def calculate_age(birth_date):
     # 计算年龄
     today = datetime.today()
@@ -65,8 +66,9 @@ def Modify_self_info(main_window):
     label_birth_date.place(x=120, y=350)
     entry_birth_date = tk.Entry(modify_window, width=30)
     entry_birth_date.place(x=220, y=350)
-    label_patient_age = tk.Label(main_window, text="age: ")
-    label_patient_age.place(x=120, y=400)
+
+    label_age = tk.Label(modify_window, text="")
+    label_age.place(x=120, y=400)
     def submit():
         birth_date_str = entry_birth_date.get()
         try:
@@ -75,12 +77,16 @@ def Modify_self_info(main_window):
             # 计算年龄
             age = calculate_age(birth_date)
             # 在标签上显示年龄
-            label_patient_age.config(text="{}岁".format(age))
+            label_age.config(text="age: {}岁".format(age))
         except ValueError:
             messagebox.showerror("错误", "无效的日期格式。请使用 YYYY-MM-DD 格式。")
-
     def modify_info():
-        global patient_name, patient_gender
+        global patient_name
+        global patient_gender
+        global patient_birth_date
+        global patient_age
+        global patient_address
+        global patient_contact_number
         try:
             name = entry_name.get()
             gender = entry_gender.get()
@@ -102,7 +108,7 @@ def Modify_self_info(main_window):
                 t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
                 username = t.fetchall()
 
-                cursor.execute("UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=?, WHERE patient_id = ?;", (name, gender, birth_date, address, contact_number,patient_id))
+                cursor.execute("UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=? WHERE patient_id = ?;", (name, gender, birth_date, address, contact_number,patient_id))
 
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username[0][0]))
 
@@ -114,19 +120,19 @@ def Modify_self_info(main_window):
                 patient_address = address
                 patient_contact_number = contact_number
                 conn.close()
+                # 添加成功消息
+                messagebox.showinfo("Success", "Information modified successfully!")
         except Exception as e:
             messagebox.showerror("Error", e.args[0])
 
-    button2 = tk.Button(modify_window, text=" Modify",
-                        command=lambda: modify_info())
-    button3 = tk.Button(main_window, text="submit", command=lambda: submit())
+
+    button2 = tk.Button(modify_window, text=" Modify",command=lambda: modify_info())
+    button3 = tk.Button(modify_window, text="submit", command=lambda: submit())
     button5 = tk.Button(modify_window, text="Exit", command=lambda: exit_to_entry(modify_window))
     # Place the buttons vertically
-    button2.pack(side=tk.TOP, padx=10, pady=15)
-    button2.place(x=90, y=500)
-    button3.place(x=220, y=500)
-    button5.pack(side=tk.TOP, padx=10, pady=15)
-    button5.place(x=350, y=500)
+    button2.place(x=90, y=450)
+    button3.place(x=220, y=450)
+    button5.place(x=350, y=450)
     modify_window.mainloop()
 
 def inquire_treatment(patient_id):
@@ -180,6 +186,7 @@ def patient_application_entry_window(realname):
     global patient_birth_date
     global patient_age
     global patient_address
+    global patient_contact_number
 
     patient_name = realname
     main_window = tk.Tk()
@@ -232,7 +239,7 @@ def patient_application_entry_window(realname):
             entry_birth_date = tk.Entry(main_window, width=30)
             entry_birth_date.place(x=220, y=250)
 
-            label_patient_age = tk.Label(main_window, text="age: ")
+            label_patient_age = tk.Label(main_window, text="")
             label_patient_age.place(x=120, y=300)
             def submit():
                 birth_date_str = entry_birth_date.get()
@@ -242,7 +249,7 @@ def patient_application_entry_window(realname):
                     # 计算年龄
                     age = calculate_age(birth_date)
                     # 在标签上显示年龄
-                    label_patient_age.config(text="{}岁".format(age))
+                    label_patient_age.config(text="Age: {}岁".format(age))
                 except ValueError:
                     messagebox.showerror("错误", "无效的日期格式。请使用 YYYY-MM-DD 格式。")
 
@@ -260,30 +267,9 @@ def patient_application_entry_window(realname):
                     return False
                 conn = sqlite3.connect('hospital_database.db')
                 c = conn.cursor()
-                try:
-                    # Enable foreign key constraints
-                    cursor = c.execute("select patient_id,patient_name,gender from Patients where Patients.patient_id=?",
-                                       (patient_id,))
-                    conn.commit()
-                    result = cursor.fetchall()
-                    print(result)
-                    if not result:
-                        try:
-                            c.execute("INSERT INTO Nurses VALUES (?,?,?)", (patient_id, realname, patient_gender))
-                            conn.commit()
-                            c.close()
-                            exit_to_entry(main_window)
-
-                        except sqlite3.Error as e:
-                            messagebox.showerror("Error", e.args[0])
-                    else:
-                        messagebox.showerror("Error", "Id has already existed")
-                        c.close()
-
-                except sqlite3.Error as e:
-                    messagebox.showerror("Error", e.args[0])
-                except Exception as ee:
-                    messagebox.showerror("Error", ee.args[0])
+                # 关闭当前窗口并打开main_window窗口
+                c.close()
+                exit_to_entry(main_window)
 
             # Create four parallel buttons
             button1 = tk.Button(main_window, text="ok", command=lambda: checkAccount())
@@ -293,9 +279,9 @@ def patient_application_entry_window(realname):
             # button1.pack(side=tk.TOP, padx=10, pady=15)
             # button2.pack(side=tk.TOP, padx=10, pady=15)
             # button3.pack(side=tk.TOP, padx=10, pady=15)
-            button1.place(x=100, y=320)
-            button2.place(x=220, y=320)
-            button3.place(x=340, y=320)
+            button1.place(x=180, y=340)
+            button2.place(x=260, y=340)
+            button3.place(x=360, y=340)
             main_window.mainloop()
     except sqlite3.Error as e:
         messagebox.showerror("Error", e.args[0])
