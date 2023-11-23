@@ -531,7 +531,7 @@ def query_by_SQL():
 
     # Create a new window
     query_window = tk.Tk()
-    query_window.title("Confirm Department Table Info")
+    query_window.title("Query By SQL")
     from main import setscreen
     setscreen(query_window, 800, 600)
 
@@ -542,7 +542,7 @@ def query_by_SQL():
     # Create a space for the user to input his/her query
     query_label = tk.Label(query_window, text="Please input your query here:")
     query_label.pack(side=tk.TOP, padx=10, pady=15)
-    query_entry = tk.Text(query_window, width=100, height=5)
+    query_entry = tk.Text(query_window, width=100, height=8)
     query_entry.pack(side=tk.TOP, padx=10, pady=15)
 
     # Create a button for the user to submit his/her query

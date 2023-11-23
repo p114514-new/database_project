@@ -1,19 +1,17 @@
 import tkinter as tk
 from tkinter import scrolledtext
-from tkinter import messagebox
 from tkinter.ttk import Treeview
 import sqlite3
 
 
 def doctor_application_entry_window(realnames):
-
     realname = realnames
     root = tk.Tk()
     root.title("Main Application")
 
-    #一个医生有多个patient和唯一的department
-    #医生可以注册他们的唯一帐户，但需要经过管理员的验证。医生可以修改他们的个人信息，但不能修改他们的科室信息。
-    #main文件Line207
+    # 一个医生有多个patient和唯一的department
+    # 医生可以注册他们的唯一帐户，但需要经过管理员的验证。医生可以修改他们的个人信息，但不能修改他们的科室信息。
+    # main文件Line207
 
     def fetch_data(realname):
         try:
@@ -46,7 +44,6 @@ def doctor_application_entry_window(realnames):
         for row in doctors_data:
             text_area_doctors.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
 
-
     def open_update_window(realname, doctors_data):
         update_window = tk.Toplevel()
 
@@ -67,19 +64,20 @@ def doctor_application_entry_window(realnames):
                                                               department_id_entry.get()))
         update_button.grid(column=3, row=0)
 
-    def update_data(realname, doctor_id, doctor_name, department_id):
+    def update_data(realname, doctor_id, doctor_name):
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         doctors_data, treatment_data = fetch_data(realname)
         change_doctor_id = True if doctor_id != doctors_data[0] else False
         change_doctor_name = True if doctor_name != doctors_data[1] else False
 
-        if(change_doctor_id):
+        if change_doctor_id:
             cursor.execute(f"UPDATE Doctors SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
             cursor.execute(f"UPDATE Treatments SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
-        if(change_doctor_name):
+        if change_doctor_name:
             cursor.execute(f"UPDATE Doctors SET doctor_name='{doctor_name}' WHERE doctor_name='{doctors_data[1]}'")
-            cursor.execute(f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
+            cursor.execute(
+                f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
 
         conn.commit()
         conn.close()
@@ -162,7 +160,6 @@ def doctor_application_entry_window(realnames):
 
             conn.close()
 
-
         def refresh_data_workbench(realname, text_area_patient, text_area_treatment):
             text_area_patient.delete('1.0', tk.END)
             text_area_treatment.delete("1.0", tk.END)
@@ -171,7 +168,6 @@ def doctor_application_entry_window(realnames):
             doctors_data, treatment_data = fetch_data(realname)
             for row in treatment_data:
                 text_area_treatment.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
-
 
         search_button = tk.Button(workbench, text="Search",
                                   command=lambda: search_patient(patient_name_entry.get(), text_area_patient))
@@ -182,9 +178,9 @@ def doctor_application_entry_window(realnames):
         restore_button.grid(column=2, row=2)
 
         refresh_button = tk.Button(workbench, text="Refresh",
-                                   command=lambda: refresh_data_workbench(realname, text_area_patient, text_area_treatment))
+                                   command=lambda: refresh_data_workbench(realname, text_area_patient,
+                                                                          text_area_treatment))
         refresh_button.grid(column=3, row=2)
-
 
     personal_info_button = tk.Button(root, text="Personal Information", command=lambda: personal_info_window(realname))
     personal_info_button.pack()
