@@ -7,7 +7,6 @@ import sqlite3
 import phonenumbers
 import re
 
-
 patient_id = 0
 patient_name = 0
 patient_birth_date = 0
@@ -18,14 +17,17 @@ patient_contact_number = 0
 patient_room_id = 0
 patient_bed_id = 0
 
+
 def exit_to_entry(window):
     window.destroy()
     patient_application_entry_window_with_info()
+
 
 def logout(main_window):
     main_window.destroy()
     from main import create_login_window
     create_login_window()
+
 
 def calculate_age(birth_date):
     # 计算年龄
@@ -34,16 +36,21 @@ def calculate_age(birth_date):
     if (today.month, today.day) < (birth_date.month, birth_date.day):
         age -= 1
     return age
+
+
 def validate_phone_number(number):
     try:
         phone_number = phonenumbers.parse(number)
         return phonenumbers.is_valid_number(phone_number)
     except phonenumbers.phonenumberutil.NumberParseException:
         return False
+
+
 def validate_address(address):
     # 允许字母、数字、空格、逗号、句点和破折号
-    pattern = re.compile("[A-Za-z0-9'\\.\\-\\s\\,]*$")
+    pattern = re.compile("[A-Za-z0-9'.\\-\\s,]*$")
     return bool(pattern.match(address))
+
 
 def patient_application_entry_window(realname):
     global patient_id
@@ -109,6 +116,7 @@ def patient_application_entry_window(realname):
 
             label_patient_age = tk.Label(main_window, text="")
             label_patient_age.place(x=120, y=300)
+
             def submit():
                 birth_date_str = entry_birth_date.get()
                 try:
@@ -136,7 +144,7 @@ def patient_application_entry_window(realname):
                 if not validate_phone_number(patient_contact_number):
                     messagebox.showerror("Error", "Invalid contact number")
                     return False
-                if patient_gender!='male' and patient_gender!='female':
+                if patient_gender != 'male' and patient_gender != 'female':
                     messagebox.showerror("Error", "Invalid Input for gender")
                     return False
                 try:
@@ -148,13 +156,18 @@ def patient_application_entry_window(realname):
                 c = conn.cursor()
                 try:
                     # Enable foreign key constraints
-                    cursor = c.execute("select patient_id,patient_name,gender,birth_date,age,address,contact_number,room_id,bed_id from Patients where Patients.patient_id=?",(patient_id,))
+                    cursor = c.execute(
+                        "select patient_id,patient_name,gender,birth_date,age,address,contact_number,room_id,bed_id"
+                        " from Patients where Patients.patient_id=?",
+                        (patient_id,))
                     conn.commit()
                     result = cursor.fetchall()
                     print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,?)", (patient_id, realname, patient_gender,patient_birth_date,patient_age,patient_address,patient_contact_number,patient_room_id,patient_bed_id))
+                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,?)", (
+                                patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
+                                patient_contact_number, patient_room_id, patient_bed_id))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
@@ -169,6 +182,7 @@ def patient_application_entry_window(realname):
                     messagebox.showerror("Error", e.args[0])
                 except Exception as ee:
                     messagebox.showerror("Error", ee.args[0])
+
             # Create four parallel buttons
             button1 = tk.Button(main_window, text="ok", command=lambda: checkAccount())
             button2 = tk.Button(main_window, text="submit", command=lambda: submit())
@@ -185,6 +199,8 @@ def patient_application_entry_window(realname):
         messagebox.showerror("Error", e.args[0])
     except Exception as ee:
         messagebox.showerror("Error", ee.args[0])
+
+
 def patient_application_entry_window_with_info():
     main_window = tk.Tk()
     main_window.title("Main Application")
@@ -205,6 +221,7 @@ def patient_application_entry_window_with_info():
     # button5.pack(side=tk.TOP, padx=10, pady=15)
     # button6.pack(side=tk.TOP, padx=10, pady=15)
     main_window.mainloop()
+
 
 def Modify_self_info(main_window):
     main_window.destroy()
@@ -245,6 +262,7 @@ def Modify_self_info(main_window):
 
     label_age = tk.Label(modify_window, text="")
     label_age.place(x=120, y=400)
+
     def submit():
         birth_date_str = entry_birth_date.get()
         try:
@@ -256,6 +274,7 @@ def Modify_self_info(main_window):
             label_age.config(text="age: {}岁".format(age))
         except ValueError:
             messagebox.showerror("错误", "无效的日期格式。请使用 YYYY-MM-DD 格式。")
+
     def modify_info():
         global patient_name
         global patient_gender
@@ -292,7 +311,10 @@ def Modify_self_info(main_window):
                 t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
                 username = t.fetchall()
 
-                cursor.execute("UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=? WHERE patient_id = ?;", (name, gender, birth_date, address, contact_number,patient_id))
+                cursor.execute(
+                    "UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=?"
+                    " WHERE patient_id = ?;",
+                    (name, gender, birth_date, address, contact_number, patient_id))
 
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username[0][0]))
 
@@ -310,8 +332,7 @@ def Modify_self_info(main_window):
         except Exception as e:
             messagebox.showerror("Error", e.args[0])
 
-
-    button2 = tk.Button(modify_window, text=" Modify",command=lambda: modify_info())
+    button2 = tk.Button(modify_window, text=" Modify", command=lambda: modify_info())
     button3 = tk.Button(modify_window, text="submit", command=lambda: submit())
     button5 = tk.Button(modify_window, text="Exit", command=lambda: exit_to_entry(modify_window))
     # Place the buttons vertically
@@ -320,6 +341,7 @@ def Modify_self_info(main_window):
     button5.place(x=350, y=450)
     modify_window.mainloop()
 
+
 def inquire_treatment(main_window):
     main_window.destroy()
     inquire_window = tk.Tk()
@@ -327,13 +349,12 @@ def inquire_treatment(main_window):
     from main import setscreen
     setscreen(inquire_window, 800, 600)
 
-    def inquire_treatment():
+    def inquire_treatment_function():
         global patient_id
-        id = patient_id
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         conn.execute('PRAGMA foreign_keys = ON')
-        t = cursor.execute("SELECT * from Treatments where patient_id=?;", (id,))
+        t = cursor.execute("SELECT * from Treatments where patient_id=?;", (patient_id,))
         result = t.fetchall()
 
         if result:
@@ -346,7 +367,7 @@ def inquire_treatment(main_window):
         conn.close()
 
     # Create buttons
-    button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_treatment())
+    button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_treatment_function())
     button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
 
     button_inquire.place(x=180, y=340)
@@ -360,14 +381,14 @@ def show_info(main_window):
     info_window.title("Show info")
     from main import setscreen
     setscreen(info_window, 800, 600)
-    def show_info():
+
+    def show_info_function():
         global patient_id
-        id = patient_id
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         conn.execute('PRAGMA foreign_keys = ON')
 
-        t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
+        t = cursor.execute("SELECT * from Patients where patient_id=?;", (patient_id,))
         result = t.fetchall()
 
         if result:
@@ -382,11 +403,11 @@ def show_info(main_window):
             messagebox.showerror("Error", "No such patient found")
 
         conn.close()
+
     # Create buttons
-    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info())
+    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
     button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
 
     button_inquire.place(x=180, y=340)
     button_exit.place(x=260, y=340)
     info_window.mainloop()
-
