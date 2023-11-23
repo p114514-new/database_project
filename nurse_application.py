@@ -410,7 +410,7 @@ def nurse_application_entry_window(realname):
             def checkAccount():
                 nurse_id = entry_nurse_id.get()
                 nurse_gender = entry_nurse_gender.get()
-                if nurse_gender!='male' or nurse_gender!='female':
+                if nurse_gender!='male' and nurse_gender!='female':
                     messagebox.showerror("Error", "Invalid Input for gender")
                     return False
                 try:

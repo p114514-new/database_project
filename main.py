@@ -194,10 +194,10 @@ def system_entry(entry_username, entry_password, window):
 
     if user_access == 1:
         # Create the patient application window
-        patient_application_entry_window()
+        patient_application_entry_window(realname)
     elif user_access == 2:
         # Create the doctor application window
-        doctor_application_entry_window()
+        doctor_application_entry_window(realname)
     elif user_access == 3:
         # Create the nurse application window
         nurse_application_entry_window(realname)
