@@ -1,17 +1,13 @@
 import tkinter as tk
 from tkinter import scrolledtext
-from tkinter.ttk import Treeview
 import sqlite3
 
 
 def doctor_application_entry_window(realnames):
+    global realname
     realname = realnames
     root = tk.Tk()
     root.title("Main Application")
-
-    # 一个医生有多个patient和唯一的department
-    # 医生可以注册他们的唯一帐户，但需要经过管理员的验证。医生可以修改他们的个人信息，但不能修改他们的科室信息。
-    # main文件Line207
 
     def fetch_data(realname):
         try:
@@ -37,6 +33,15 @@ def doctor_application_entry_window(realnames):
         except sqlite3.Error as e:
             print(e)
 
+    def display_data(textbox, data):
+        textbox.delete('1.0', tk.END)
+        if len(data) == 1:  # 如果只有一行数据
+            for attribute in data[0]:
+                textbox.insert(tk.INSERT, str(attribute) + '\n')
+        else:  # 如果有多行数据
+            for row in data:
+                textbox.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
+
     def refresh_data(realname, text_area_doctors):
         doctors_data, treatment_data = fetch_data(realname)
 
@@ -44,17 +49,21 @@ def doctor_application_entry_window(realnames):
         for row in doctors_data:
             text_area_doctors.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
 
+
     def open_update_window(realname, doctors_data):
         update_window = tk.Toplevel()
 
+        tk.Label(update_window, text="Doctor ID").grid(column=0, row=0)
         doctor_id_entry = tk.Entry(update_window)
         doctor_id_entry.insert(0, doctors_data[0][0])
         doctor_id_entry.grid(column=0, row=0)
 
+        tk.Label(update_window, text="Doctor Name").grid(column=0, row=1)
         doctor_name_entry = tk.Entry(update_window)
         doctor_name_entry.insert(0, doctors_data[0][1])
         doctor_name_entry.grid(column=1, row=0)
 
+        tk.Label(update_window, text="Department ID").grid(column=0, row=2)
         department_id_entry = tk.Entry(update_window)
         department_id_entry.insert(0, doctors_data[0][2])
         department_id_entry.grid(column=2, row=0)
@@ -62,19 +71,19 @@ def doctor_application_entry_window(realnames):
         update_button = tk.Button(update_window, text="Update",
                                   command=lambda: update_data(realname, doctor_id_entry.get(), doctor_name_entry.get(),
                                                               department_id_entry.get()))
-        update_button.grid(column=3, row=0)
+        update_button.grid(column=1, row=3)
 
-    def update_data(realname, doctor_id, doctor_name):
+    def update_data(realname, doctor_id, doctor_name, department_id):
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         doctors_data, treatment_data = fetch_data(realname)
         change_doctor_id = True if doctor_id != doctors_data[0] else False
         change_doctor_name = True if doctor_name != doctors_data[1] else False
 
-        if change_doctor_id:
+        if (change_doctor_id):
             cursor.execute(f"UPDATE Doctors SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
             cursor.execute(f"UPDATE Treatments SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
-        if change_doctor_name:
+        if (change_doctor_name):
             cursor.execute(f"UPDATE Doctors SET doctor_name='{doctor_name}' WHERE doctor_name='{doctors_data[1]}'")
             cursor.execute(
                 f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
@@ -83,6 +92,7 @@ def doctor_application_entry_window(realnames):
         conn.close()
 
     def personal_info_window(realname):
+        root.withdraw()
         personal_info = tk.Toplevel()
         personal_info.title("Personal Information")
 
@@ -91,8 +101,8 @@ def doctor_application_entry_window(realnames):
         tk.Label(personal_info, text="Doctors Data").grid(column=0, row=0)
         text_area_doctors = scrolledtext.ScrolledText(personal_info, width=40, height=5)
         text_area_doctors.grid(column=0, row=1)
-        for row in doctors_data:
-            text_area_doctors.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
+
+        display_data(text_area_doctors, doctors_data)
 
         update_button = tk.Button(personal_info, text="Update Information",
                                   command=lambda: open_update_window(realname, doctors_data))
@@ -102,7 +112,18 @@ def doctor_application_entry_window(realnames):
                                    command=lambda: refresh_data(realname, text_area_doctors))
         refresh_button.grid(column=0, row=3)
 
+        def back_to_main():
+            personal_info.destroy()
+            root.deiconify()  # 显示一级界面
+
+        back_button = tk.Button(personal_info, text="Back", command=back_to_main)
+        back_button.grid(column=4, row=3)
+
+    def logout():
+        root.destroy()
+
     def workbench_window(realname):
+        root.withdraw()
         workbench = tk.Toplevel()
         workbench.title("Workbench")
 
@@ -111,13 +132,21 @@ def doctor_application_entry_window(realnames):
         tk.Label(workbench, text="Treatment Data").grid(column=0, row=0)
         text_area_treatment = scrolledtext.ScrolledText(workbench, width=40, height=10)
         text_area_treatment.grid(column=0, row=1)
-        for row in treatment_data:
-            text_area_treatment.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
+
+        display_data(text_area_treatment, treatment_data)
 
         # 显示病人信息
         tk.Label(workbench, text="Patient Data").grid(column=1, row=0)
         text_area_patient = scrolledtext.ScrolledText(workbench, width=40, height=10)
         text_area_patient.grid(column=1, row=1)
+
+        def back_to_main():
+            workbench.destroy()
+            root.deiconify()  # 显示一级界面
+
+        back_button = tk.Button(workbench, text="Back", command=back_to_main)
+        back_button.grid(column=4, row=2)
+
 
         # 添加从数据库获取病人信息的代码，并显示在text_area_patient中
         def restore_patient(textbox):
@@ -143,8 +172,10 @@ def doctor_application_entry_window(realnames):
         restore_patient(text_area_patient)
 
         # 输入框和按钮
+        tk.Label(workbench, text="Patient Name").grid(column=0, row=2)
         patient_name_entry = tk.Entry(workbench)
-        patient_name_entry.grid(column=0, row=2)
+        patient_name_entry.grid(column=1, row=2)
+
 
         def search_patient(name, textbox):
             conn = sqlite3.connect('hospital_database.db')
@@ -169,6 +200,7 @@ def doctor_application_entry_window(realnames):
             for row in treatment_data:
                 text_area_treatment.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
 
+
         search_button = tk.Button(workbench, text="Search",
                                   command=lambda: search_patient(patient_name_entry.get(), text_area_patient))
         search_button.grid(column=1, row=2)
@@ -178,13 +210,19 @@ def doctor_application_entry_window(realnames):
         restore_button.grid(column=2, row=2)
 
         refresh_button = tk.Button(workbench, text="Refresh",
-                                   command=lambda: refresh_data_workbench(realname, text_area_patient,
-                                                                          text_area_treatment))
+                                   command=lambda: refresh_data_workbench(realname, text_area_patient, text_area_treatment))
         refresh_button.grid(column=3, row=2)
 
     personal_info_button = tk.Button(root, text="Personal Information", command=lambda: personal_info_window(realname))
     personal_info_button.pack()
 
+    workbench_button = tk.Button(root, text="Workbench", command=lambda: workbench_window(realname))
+    workbench_button.pack()
+
+    logout_button = tk.Button(root, text="Logout", command=logout)  # 添加Logout按钮
+    logout_button.pack()
+
+    root.mainloop()
     workbench_button = tk.Button(root, text="Workbench", command=lambda: workbench_window(realname))
     workbench_button.pack()
 
