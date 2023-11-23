@@ -13,7 +13,6 @@ if __name__ == "__main__":
 
     if selected_table == all_tables[0]:
         cursor.execute('''
-            DROP TABLE Patients;
             CREATE TABLE Patients (
                 patient_id INTEGER PRIMARY KEY,
                 patient_name TEXT,
