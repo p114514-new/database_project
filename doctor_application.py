@@ -73,7 +73,22 @@ def doctor_application_entry_window(realnames):
                                                               department_id_entry.get()))
         update_button.grid(column=1, row=3)
 
-    def update_data(realname, doctor_id, doctor_name, department_id):
+        def update_data(realname, doctor_id, doctor_name, department_id):
+        # 验证doctor_id，doctor_name和department_id是否为空
+        if not doctor_id or not doctor_name or not department_id:
+            print("Error: doctor_id, doctor_name and department_id cannot be empty.")
+            return
+
+        # 验证doctor_id和department_id是否为数字
+        if not doctor_id.isdigit() or not department_id.isdigit():
+            print("Error: doctor_id and department_id must be numbers.")
+            return
+
+        # 验证doctor_name是否只包含字母和空格
+        if not doctor_name.replace(' ', '').isalpha():
+            print("Error: doctor_name must only contain letters and spaces.")
+            return
+
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         doctors_data, treatment_data = fetch_data(realname)
