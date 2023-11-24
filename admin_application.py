@@ -404,11 +404,17 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
         # list the appearance of the foreign key in all tables
         column_names = get_all_attributes()
         tables_having_this_key = [x for x in column_names if column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
-        messagebox.showwarning("Dangerous Operation", "Modifying foreign keys is a dangerous approach. \n" +
-                               "All tables having this key are: " + str(tables_having_this_key)
-                               + "\nDo you want to continue? The system will only modify this cell but will not " +
-                               "do further modfications in other tables. " +
-                               "Make sure all values for this foreign key are consistent.")
+        result = messagebox.askquestion("Dangerous Operation",
+                                        "Modifying foreign keys is a dangerous approach. \n" +
+                                        "All tables having this key are: " + str(tables_having_this_key) +
+                                        "\nDo you want to continue? The system will only modify this cell but will not " +
+                                        "do further modifications in other tables. " +
+                                        "Make sure all values for this foreign key are consistent.",
+                                        icon='warning',
+                                        type='yesno')
+
+        if result == 'no':
+            return
 
     # Check if the new value is valid
     if not is_valid_value(column_name, new_value):
