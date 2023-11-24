@@ -117,18 +117,6 @@ def patient_application_entry_window(realname):
             label_patient_age = tk.Label(main_window, text="")
             label_patient_age.place(x=120, y=300)
 
-            def submit():
-                birth_date_str = entry_birth_date.get()
-                try:
-                    # 将字符串转换为日期对象
-                    birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d')
-                    # 计算年龄
-                    age = calculate_age(birth_date)
-                    # 在标签上显示年龄
-                    label_patient_age.config(text="Age: {}岁".format(age))
-                except ValueError:
-                    messagebox.showerror("错误", "无效的日期格式。请使用 YYYY-MM-DD 格式。")
-
             # Create a connection to the SQLite database
             def checkAccount():
                 patient_id = entry_patient_id.get()
@@ -162,7 +150,7 @@ def patient_application_entry_window(realname):
                         (patient_id,))
                     conn.commit()
                     result = cursor.fetchall()
-                    print(result)
+                    # print(result)
                     if not result:
                         try:
                             c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,?)", (
@@ -182,6 +170,17 @@ def patient_application_entry_window(realname):
                     messagebox.showerror("Error", e.args[0])
                 except Exception as ee:
                     messagebox.showerror("Error", ee.args[0])
+            def submit():
+                birth_date_str = entry_birth_date.get()
+                try:
+                    # 将字符串转换为日期对象
+                    birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d')
+                    # 计算年龄
+                    age = calculate_age(birth_date)
+                    # 在标签上显示年龄
+                    label_patient_age.config(text="Age: {}岁".format(age))
+                except ValueError:
+                    messagebox.showerror("错误", "无效的日期格式。请使用 YYYY-MM-DD 格式。")
 
             # Create four parallel buttons
             button1 = tk.Button(main_window, text="ok", command=lambda: checkAccount())
@@ -211,14 +210,15 @@ def patient_application_entry_window_with_info():
     button1 = tk.Button(main_window, text="Show Info", command=lambda: show_info(main_window))
     button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
     button3 = tk.Button(main_window, text="Inquire your treatment", command=lambda: inquire_treatment(main_window))
-    button4 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
+    button4 = tk.Button(main_window, text="Find doctor", command=lambda: show_departments(main_window))
+    button5 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
     button2.pack(side=tk.TOP, padx=10, pady=15)
     button3.pack(side=tk.TOP, padx=10, pady=15)
     button4.pack(side=tk.TOP, padx=10, pady=15)
-    # button5.pack(side=tk.TOP, padx=10, pady=15)
+    button5.pack(side=tk.TOP, padx=10, pady=15)
     # button6.pack(side=tk.TOP, padx=10, pady=15)
     main_window.mainloop()
 
@@ -387,8 +387,8 @@ def show_info(main_window):
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
         conn.execute('PRAGMA foreign_keys = ON')
-
-        t = cursor.execute("SELECT * from Patients where patient_id=?;", (patient_id,))
+        id = patient_id
+        t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
         result = t.fetchall()
 
         if result:
@@ -411,3 +411,97 @@ def show_info(main_window):
     button_inquire.place(x=180, y=340)
     button_exit.place(x=260, y=340)
     info_window.mainloop()
+def show_departments(main_window):
+    main_window.withdraw()
+    department_interface = tk.Tk()
+    department_interface.title("Select Department")
+    from main import setscreen
+    setscreen(department_interface, 800, 600)
+
+    # Create two frames
+    department_frame = tk.Frame(department_interface)
+    department_frame.pack(side='top')
+
+    doctor_frame = tk.Frame(department_interface)
+    doctor_frame.pack(side='bottom')
+
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    # Retrieve the department names from the Departments table
+    cursor.execute("SELECT department_name, department_id FROM Departments")
+    departments = cursor.fetchall()
+
+    conn.close()
+
+    # Create a tkinter Treeview widget for departments
+    department_treeview = tk.ttk.Treeview(department_frame)
+    department_treeview["columns"]=("one","two")
+    department_treeview.column("one", width=100 )
+    department_treeview.column("two", width=100)
+    department_treeview.heading("one", text="Department Name")
+    department_treeview.heading("two", text="Department ID")
+
+    for i in departments:
+        department_treeview.insert('', 'end', text=i[0], values=(i[0], i[1]))
+
+    department_treeview.pack()
+
+    # Create a tkinter Treeview widget for doctors
+    doctor_treeview = tk.ttk.Treeview(doctor_frame)
+    doctor_treeview["columns"]=("one","two")
+    doctor_treeview.column("one", width=100 )
+    doctor_treeview.column("two", width=100)
+    doctor_treeview.heading("one", text="Doctor Name")
+    doctor_treeview.heading("two", text="Doctor ID")
+
+    doctor_treeview.pack()
+
+    # Create a label for displaying messages
+    message_label = tk.Label(department_frame)
+    message_label.pack()
+
+    def on_select(event):
+        selected_item = department_treeview.selection()[0] ## get selected item
+        apartment_id = department_treeview.item(selected_item)['values'][1]
+        message_label.config(text=f"You selected apartment with ID: {apartment_id}")
+
+    department_treeview.bind('<<TreeviewSelect>>', on_select)
+
+    def show_doctors(department_id):
+        # Clear the doctor_treeview
+        for i in doctor_treeview.get_children():
+            doctor_treeview.delete(i)
+
+        # Create a connection to the SQLite database
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+
+        # Retrieve the doctor names from the Doctors table
+        cursor.execute("SELECT doctor_name, doctor_id FROM Doctors WHERE department_id=?", (department_id,))
+        doctors = cursor.fetchall()
+
+        conn.close()
+
+        # Insert the doctors into the doctor_treeview
+        for i in doctors:
+            doctor_treeview.insert('', 'end', text=i[0], values=(i[0], i[1]))
+
+    # Add an Entry widget for the user to input the department ID
+    department_id_entry = tk.Entry(department_frame)
+    department_id_entry.pack()
+
+    # Add a Button widget to trigger the show_doctors function
+    show_doctors_button = tk.Button(department_frame, text="Show Doctors",
+                                    command=lambda: show_doctors(department_id_entry.get()))
+    show_doctors_button.pack()
+
+    def on_close():
+        department_interface.destroy()
+        main_window.deiconify()
+
+    department_interface.protocol("WM_DELETE_WINDOW", on_close)
+
+    department_interface.mainloop()
+

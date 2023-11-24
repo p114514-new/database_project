@@ -15,7 +15,6 @@ if __name__ == "__main__":
         cursor.execute('''
             CREATE TABLE Patients (
                 patient_id INTEGER PRIMARY KEY,
-                patient_name TEXT,
                 gender TEXT,
                 birth_date DATE,
                 age INTEGER,
