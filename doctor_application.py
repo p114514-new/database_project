@@ -74,37 +74,37 @@ def doctor_application_entry_window(realnames):
         update_button.grid(column=1, row=3)
 
         def update_data(realname, doctor_id, doctor_name, department_id):
-        # 验证doctor_id，doctor_name和department_id是否为空
-        if not doctor_id or not doctor_name or not department_id:
-            print("Error: doctor_id, doctor_name and department_id cannot be empty.")
-            return
+            # 验证doctor_id，doctor_name和department_id是否为空
+            if not doctor_id or not doctor_name or not department_id:
+                print("Error: doctor_id, doctor_name and department_id cannot be empty.")
+                return
 
-        # 验证doctor_id和department_id是否为数字
-        if not doctor_id.isdigit() or not department_id.isdigit():
-            print("Error: doctor_id and department_id must be numbers.")
-            return
+            # 验证doctor_id和department_id是否为数字
+            if not doctor_id.isdigit() or not department_id.isdigit():
+                print("Error: doctor_id and department_id must be numbers.")
+                return
 
-        # 验证doctor_name是否只包含字母和空格
-        if not doctor_name.replace(' ', '').isalpha():
-            print("Error: doctor_name must only contain letters and spaces.")
-            return
+            # 验证doctor_name是否只包含字母和空格
+            if not doctor_name.replace(' ', '').isalpha():
+                print("Error: doctor_name must only contain letters and spaces.")
+                return
 
-        conn = sqlite3.connect('hospital_database.db')
-        cursor = conn.cursor()
-        doctors_data, treatment_data = fetch_data(realname)
-        change_doctor_id = True if doctor_id != doctors_data[0] else False
-        change_doctor_name = True if doctor_name != doctors_data[1] else False
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+            doctors_data, treatment_data = fetch_data(realname)
+            change_doctor_id = True if doctor_id != doctors_data[0] else False
+            change_doctor_name = True if doctor_name != doctors_data[1] else False
 
-        if (change_doctor_id):
-            cursor.execute(f"UPDATE Doctors SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
-            cursor.execute(f"UPDATE Treatments SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
-        if (change_doctor_name):
-            cursor.execute(f"UPDATE Doctors SET doctor_name='{doctor_name}' WHERE doctor_name='{doctors_data[1]}'")
-            cursor.execute(
-                f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
+            if (change_doctor_id):
+                cursor.execute(f"UPDATE Doctors SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
+                cursor.execute(f"UPDATE Treatments SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
+            if (change_doctor_name):
+                cursor.execute(f"UPDATE Doctors SET doctor_name='{doctor_name}' WHERE doctor_name='{doctors_data[1]}'")
+                cursor.execute(
+                    f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
 
-        conn.commit()
-        conn.close()
+            conn.commit()
+            conn.close()
 
     def personal_info_window(realname):
         root.withdraw()

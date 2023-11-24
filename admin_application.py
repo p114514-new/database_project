@@ -1,10 +1,33 @@
 import sqlite3
 import tkinter as tk
+from collections import defaultdict
 from tkinter import messagebox
 import tkinter.simpledialog as simpledialog
 from tkinter.ttk import Treeview
 
 import pandas as pd
+
+
+def get_all_attributes():
+    # query to get all table names
+    query = "SELECT name FROM sqlite_master WHERE type='table';"
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute(query)
+    tables = cursor.fetchall()
+
+    # for each table, get all column names
+    all_attributes = {}
+    for table in tables:
+        query = f"PRAGMA table_info({table[0]});"
+        cursor.execute(query)
+        attributes = cursor.fetchall()
+        attributes = [attribute[1] for attribute in attributes]
+        all_attributes[table[0]] = attributes
+
+    conn.close()
+
+    return all_attributes
 
 
 def exit_to_entry(window):
@@ -339,6 +362,7 @@ def view_tables(main_window):
 
 
 def SelectItem(event, treeview, table_name):
+    print(get_all_attributes())
     curItem = treeview.item(treeview.focus())
     col = treeview.identify_column(event.x)
     print('curItem = ', curItem)
@@ -373,9 +397,18 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
     cursor = conn.cursor()
 
     # Check if the column is a primary key
-    if is_key(table_name, column_name):
+    if is_key(table_name, column_name, primary_keys) == 1:
         messagebox.showwarning("Invalid Operation", "Modifying primary keys is not allowed.")
         return
+    elif is_key(table_name, column_name, primary_keys) == 2:
+        # list the appearance of the foreign key in all tables
+        column_names = get_all_attributes()
+        tables_having_this_key = [x for x in column_names if column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
+        messagebox.showwarning("Dangerous Operation", "Modifying foreign keys is a dangerous approach. \n" +
+                               "All tables having this key are: " + str(tables_having_this_key)
+                               + "\nDo you want to continue? The system will only modify this cell but will not " +
+                               "do further modfications in other tables. " +
+                               "Make sure all values for this foreign key are consistent.")
 
     # Check if the new value is valid
     if not is_valid_value(column_name, new_value):
@@ -390,7 +423,6 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
         query += f"{primary_keys[table_name][i]} = ?"
         if i != len(primary_keys[table_name]) - 1:
             query += " AND "
-
     # get the primary key values for the selected row
     primary_key_values = []
     for i in range(len(primary_keys[table_name])):
@@ -409,11 +441,18 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
     refresh_treeview(treeview, table_name)
 
 
-def is_key(table_name, column_name):
-    # Implement the logic to check if the column is a primary key
-    # Replace with your own implementation
-    pass
-    return False
+def is_key(table_name, column_name, primary_keys):
+    foreign_keys = defaultdict(list)
+    foreign_keys['Patients'] = ['room_id']
+    foreign_keys['Doctors'] = ['department_id']
+    foreign_keys['Treatments'] = ['room_id']
+    foreign_keys['Nurse_Patient_Room'] = ['room_id']
+    if column_name in primary_keys[table_name]:
+        return 1
+    elif column_name in foreign_keys[table_name]:
+        return 2
+    else:
+        return 0
 
 
 def is_valid_value(column_name, new_value):
@@ -748,7 +787,6 @@ def query_by_SQL():
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
-    cursor = conn.cursor()
 
     # Create a space for the user to input his/her query
     query_label = tk.Label(query_window, text="Please input your query here:")
