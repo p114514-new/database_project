@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DatabaseBrowserManager">
@@ -23,7 +23,34 @@
     <last-used-providers />
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files />
+    <open-files>
+      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Patients" />
+    </open-files>
+  </component>
+  <component name="DBNavigator.Project.DatasetFilterManager">
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Rooms" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Patients" active-filter-id="EMPTY_FILTER">
+      <filter id="ac700dcd-5a8b-4ad0-91d1-b308fd7b60c2" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="patient_id" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Treatments" active-filter-id="EMPTY_FILTER">
+      <filter id="e937a106-0370-4046-a4d6-d9fddbb3e600" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="treatment_id" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Nurse_Patient_Room" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Login" active-filter-id="EMPTY_FILTER">
+      <filter id="5a9c2fb0-0d4b-475b-ab83-ef9f4665d56e" name="Filter 1" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="password" operator="=" value="" active="true" />
+      </filter>
+    </filter-actions>
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Buffer2" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Buffer1" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Doctors" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Hospital_Staff" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Nurses" active-filter-id="EMPTY_FILTER" />
+    <filter-actions connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" dataset="main.Departments" active-filter-id="EMPTY_FILTER" />
   </component>
   <component name="DBNavigator.Project.ObjectQuickFilterManager">
     <last-used-operator value="EQUAL" />
@@ -37,7 +64,7 @@
           <description value="" />
           <database-type value="SQLITE" />
           <config-type value="BASIC" />
-          <database-version value="9999.0" />
+          <database-version value="3.44" />
           <driver-source value="BUNDLED" />
           <driver-library value="" />
           <driver value="" />
@@ -48,7 +75,7 @@
           <tns-folder value="" />
           <tns-profile value="" />
           <files>
-            <file path="sqlite.db" schema="main" />
+            <file path="C:\Users\86187\Documents\GitHub\database_project\hospital_database.db" schema="main" />
           </files>
           <type value="NONE" />
           <user value="" />
@@ -78,7 +105,7 @@
           <session-management value="true" />
           <ddl-file-binding value="true" />
           <database-logging value="true" />
-          <connect-automatically value="true" />
+          <connect-automatically value="false" />
           <restore-workspace value="true" />
           <restore-workspace-deep value="false" />
           <environment-type value="default" />
@@ -551,7 +578,7 @@
       <transactions>
         <uncommitted-changes>
           <on-project-close value="ASK" />
-          <on-disconnect value="ASK" />
+          <on-disconnect value="COMMIT" />
           <on-autocommit-toggle value="ASK" />
         </uncommitted-changes>
         <multiple-uncommitted-changes>
@@ -617,5 +644,9 @@
         </visibility-settings>
       </environment>
     </general-settings>
+  </component>
+  <component name="DBNavigator.Project.StatementExecutionManager">
+    <execution-variables />
+    <execution-variable-types />
   </component>
 </project>

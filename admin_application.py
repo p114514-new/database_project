@@ -1,8 +1,33 @@
-import tkinter as tk
-from tkinter import messagebox
-from tkinter.ttk import Treeview
-import pandas as pd
 import sqlite3
+import tkinter as tk
+from collections import defaultdict
+from tkinter import messagebox
+import tkinter.simpledialog as simpledialog
+from tkinter.ttk import Treeview
+
+import pandas as pd
+
+
+def get_all_attributes():
+    # query to get all table names
+    query = "SELECT name FROM sqlite_master WHERE type='table';"
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute(query)
+    tables = cursor.fetchall()
+
+    # for each table, get all column names
+    all_attributes = {}
+    for table in tables:
+        query = f"PRAGMA table_info({table[0]});"
+        cursor.execute(query)
+        attributes = cursor.fetchall()
+        attributes = [attribute[1] for attribute in attributes]
+        all_attributes[table[0]] = attributes
+
+    conn.close()
+
+    return all_attributes
 
 
 def exit_to_entry(window):
@@ -231,17 +256,17 @@ def view_tables(main_window):
     conn.close()
 
     # Remove the buffer tables from the options list
-    options = [table[0] for table in tables if table[0] not in ["Buffer1", "Buffer2", "Login"]]
+    options = [table[0] for table in tables if table[0] not in ["Buffer1", "Buffer2"]]
 
     # Create a search module
     search_frame = tk.Frame(view_window)
     name_for_search_frame = {'Patients': 'Patient Name', 'Departments': 'Department Name', 'Doctors': 'Doctor Name',
                              'Hospital_Staff': 'Staff Name', 'Nurses': 'Nurse Name', 'Rooms': 'Room id',
-                             'Nurse_Patient_Room': 'Patient id', 'Treatments': 'Patient id'
+                             'Nurse_Patient_Room': 'Patient id', 'Treatments': 'Patient id', 'Login': 'Username'
                              }
     search_column = {'Patients': 'patient_name', 'Departments': 'department_name', 'Doctors': 'doctor_name',
                      'Hospital_Staff': 'staff_name', 'Nurses': 'nurse_name', 'Rooms': 'room_id',
-                     'Nurse_Patient_Room': 'patient_id', 'Treatments': 'patient_id'
+                     'Nurse_Patient_Room': 'patient_id', 'Treatments': 'patient_id', 'Login': 'username'
                      }
     search_label = tk.Label(search_frame, text=f"Search for {name_for_search_frame[options[0]]}: ")
     search_entry = tk.Entry(search_frame)
@@ -334,6 +359,237 @@ def view_tables(main_window):
     exit_button.pack(side=tk.BOTTOM)
 
     view_window.mainloop()
+
+
+def SelectItem(event, treeview, table_name):
+    print(get_all_attributes())
+    curItem = treeview.item(treeview.focus())
+    col = treeview.identify_column(event.x)
+    print('curItem = ', curItem)
+    print('col = ', col)
+
+    if col == '#0':
+        cell_value = curItem['text']
+    else:
+        cell_value = curItem['values'][int(col[1:]) - 1]
+    print('cell_value = ', cell_value)
+
+    new_value = prompt_for_value(cell_value)
+
+    column_name = treeview.heading(int(col[1:]) - 1)['text']
+    primary_keys = {'Patients': ['patient_id'], 'Departments': ['department_id'], 'Doctors': ['doctor_id'],
+                    'Hospital_Staff': ['staff_id'], 'Nurses': ['nurse_id'], 'Rooms': ['room_id'],
+                    'Nurse_Patient_Room': ['patient_id', 'room_id'], 'Treatments': ['treatment_id'],
+                    'Login': ['realname', 'password']
+                    }
+
+    if new_value is not None:
+        update_value(treeview, curItem['values'], new_value, table_name, column_name, primary_keys)
+
+
+def prompt_for_value(old_value):
+    new_value = simpledialog.askstring("Modify Value", "Enter the new value:", initialvalue=old_value)
+    return new_value
+
+
+def update_value(treeview, values, new_value, table_name, column_name, primary_keys):
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    # Check if the column is a primary key
+    if is_key(table_name, column_name, primary_keys) == 1:
+        messagebox.showwarning("Invalid Operation", "Modifying primary keys is not allowed.")
+        return
+    elif is_key(table_name, column_name, primary_keys) == 2:
+        # list the appearance of the foreign key in all tables
+        column_names = get_all_attributes()
+        tables_having_this_key = [x for x in column_names if column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
+        result = messagebox.askquestion("Dangerous Operation",
+                                        "Modifying foreign keys is a dangerous approach. \n" +
+                                        "All tables having this key are: " + str(tables_having_this_key) +
+                                        "\nDo you want to continue? The system will only modify this cell but will not " +
+                                        "do further modifications in other tables. " +
+                                        "Make sure all values for this foreign key are consistent.",
+                                        icon='warning',
+                                        type='yesno')
+
+        if result == 'no':
+            return
+
+    # Check if the new value is valid
+    if not is_valid_value(column_name, new_value):
+        messagebox.showwarning("Invalid Value", "The entered value is not valid.")
+        return
+
+    # Construct the UPDATE query
+    query = f"UPDATE {table_name} SET {column_name} = ? WHERE "
+
+    # add the priamry key condition to the query
+    for i in range(len(primary_keys[table_name])):
+        query += f"{primary_keys[table_name][i]} = ?"
+        if i != len(primary_keys[table_name]) - 1:
+            query += " AND "
+    # get the primary key values for the selected row
+    primary_key_values = []
+    for i in range(len(primary_keys[table_name])):
+        primary_key_values.append(values[i])
+
+    try:
+        cursor.execute(query, (new_value, *primary_key_values))
+        conn.commit()
+        messagebox.showinfo("Value Updated", "The value has been successfully updated.")
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", str(e))
+    finally:
+        conn.close()
+
+    # Refresh the Treeview widget
+    refresh_treeview(treeview, table_name)
+
+
+def is_key(table_name, column_name, primary_keys):
+    foreign_keys = defaultdict(list)
+    foreign_keys['Patients'] = ['room_id']
+    foreign_keys['Doctors'] = ['department_id']
+    foreign_keys['Treatments'] = ['room_id']
+    foreign_keys['Nurse_Patient_Room'] = ['room_id']
+    if column_name in primary_keys[table_name]:
+        return 1
+    elif column_name in foreign_keys[table_name]:
+        return 2
+    else:
+        return 0
+
+
+def is_valid_value(column_name, new_value):
+    # Implement the logic to check if the new value is valid for the column
+    # Replace with your own implementation
+    pass
+    return True
+
+
+def modify_tables_interface(main_window):
+    main_window.destroy()
+    modifying_interface = tk.Tk()
+    modifying_interface.title("Modify Table")
+    from main import setscreen
+    setscreen(modifying_interface, 800, 600)
+
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    # Retrieve the available tables from the database schema
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = cursor.fetchall()
+
+    conn.close()
+
+    # Remove the buffer tables from the options list
+    options = [table[0] for table in tables if table[0] not in ["Buffer1", "Buffer2"]]
+
+    # Create a search module
+    search_frame = tk.Frame(modifying_interface)
+    name_for_search_frame = {'Patients': 'Patient Name', 'Departments': 'Department Name', 'Doctors': 'Doctor Name',
+                             'Hospital_Staff': 'Staff Name', 'Nurses': 'Nurse Name', 'Rooms': 'Room id',
+                             'Nurse_Patient_Room': 'Patient id', 'Treatments': 'Patient id', 'Login': 'Username'
+                             }
+    search_column = {'Patients': 'patient_name', 'Departments': 'department_name', 'Doctors': 'doctor_name',
+                     'Hospital_Staff': 'staff_name', 'Nurses': 'nurse_name', 'Rooms': 'room_id',
+                     'Nurse_Patient_Room': 'patient_id', 'Treatments': 'patient_id', 'Login': 'username'
+                     }
+    search_label = tk.Label(search_frame, text=f"Search for {name_for_search_frame[options[0]]}: ")
+    search_entry = tk.Entry(search_frame)
+    search_button = tk.Button(search_frame, text="Search",
+                              command=lambda: search_views(treeview, options[0], search_entry, search_column))
+    default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, options[0]))
+
+    # Pack the search module
+    search_frame.pack(pady=10)
+    search_label.pack(side=tk.LEFT)
+    search_entry.pack(side=tk.LEFT, padx=5)
+    search_button.pack(side=tk.LEFT)
+    default_button.pack(side=tk.LEFT, padx=5)
+
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(modifying_interface)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(modifying_interface)
+
+    def on_selection_changed(selection):
+        nonlocal treeview, message_label
+
+        search_label.config(text=f"Search for {name_for_search_frame[selection]}: ")
+        search_button.config(command=lambda: search_views(treeview, selection, search_entry, search_column))
+        default_button.config(command=lambda: refresh_treeview(treeview, selection))
+
+        # Clear any previous data in the Treeview widget
+        treeview.delete(*treeview.get_children())
+
+        # Remove the message label if it exists
+        message_label.pack_forget()
+
+        # Create a connection to the SQLite database
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+
+        # Execute a SELECT query to retrieve data from the selected table
+        cursor.execute(f"SELECT * FROM {selection}")
+        table_data = cursor.fetchall()
+
+        conn.close()
+
+        if table_data:
+            # Create a pandas DataFrame from the table data
+            df = pd.DataFrame(table_data)
+            df.columns = [description[0] for description in cursor.description]
+
+            # Destroy and recreate the columns in the Treeview widget
+            treeview.destroy()
+            treeview = tk.ttk.Treeview(modifying_interface)
+
+            # Create the column headings in the Treeview widget
+            table_columns = df.columns
+            treeview["columns"] = tuple(table_columns)
+            treeview["show"] = "headings"
+            for column in table_columns:
+                treeview.heading(column, text=column)
+                treeview.column(column, width=100)
+                treeview.bind('<ButtonRelease-1>', lambda event: SelectItem(event, treeview, selection))
+
+            # Insert the table data into the Treeview widget
+            for i, row in df.iterrows():
+                treeview.insert("", "end", values=tuple(row))
+        else:
+            # No data returned, display a message
+            message_label.config(text="No data available for this table.")
+            message_label.pack()
+
+            # No data available, but we can still refresh the column names
+            columns = [description[0] for description in cursor.description]
+            treeview["columns"] = tuple(columns)
+            for column in columns:
+                treeview.heading(column, text=column)
+                treeview.column(column, width=100)
+
+        # Pack the Treeview widget
+        treeview.pack(expand=True, fill=tk.BOTH)
+
+    # Create the OptionMenu widget
+    selected_table = tk.StringVar(modifying_interface)
+    selected_table.set(options[0])
+    option_menu = tk.OptionMenu(modifying_interface, selected_table, *options, command=on_selection_changed)
+    option_menu.pack()
+
+    # Execute the initial selection change to display the default table data
+    on_selection_changed(selected_table.get())
+
+    exit_button = tk.Button(modifying_interface, text="exit", command=lambda: exit_to_entry(modifying_interface))
+
+    exit_button.pack(side=tk.BOTTOM)
+
+    modifying_interface.mainloop()
 
 
 def search_doctors(treeview, search_entry):
@@ -531,18 +787,17 @@ def query_by_SQL():
 
     # Create a new window
     query_window = tk.Tk()
-    query_window.title("Confirm Department Table Info")
+    query_window.title("Query By SQL")
     from main import setscreen
     setscreen(query_window, 800, 600)
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
-    cursor = conn.cursor()
 
     # Create a space for the user to input his/her query
     query_label = tk.Label(query_window, text="Please input your query here:")
     query_label.pack(side=tk.TOP, padx=10, pady=15)
-    query_entry = tk.Text(query_window, width=100, height=5)
+    query_entry = tk.Text(query_window, width=100, height=8)
     query_entry.pack(side=tk.TOP, padx=10, pady=15)
 
     # Create a button for the user to submit his/her query
@@ -568,11 +823,12 @@ def admin_application_entry_window():
 
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="view table", command=lambda: view_tables(main_window))
-    button2 = tk.Button(main_window, text="confirm doctor info", command=lambda: confirm_doctors_info(main_window))
-    button3 = tk.Button(main_window, text="confirm department info",
+    button2 = tk.Button(main_window, text="modify table", command=lambda: modify_tables_interface(main_window))
+    button3 = tk.Button(main_window, text="confirm doctor info", command=lambda: confirm_doctors_info(main_window))
+    button4 = tk.Button(main_window, text="confirm department info",
                         command=lambda: confirm_departments_info(main_window))
-    button4 = tk.Button(main_window, text="query by SQL", command=query_by_SQL)
-    button5 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
+    button5 = tk.Button(main_window, text="query by SQL", command=query_by_SQL)
+    button6 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
@@ -580,5 +836,6 @@ def admin_application_entry_window():
     button3.pack(side=tk.TOP, padx=10, pady=15)
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
+    button6.pack(side=tk.TOP, padx=10, pady=15)
 
     main_window.mainloop()
