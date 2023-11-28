@@ -3,8 +3,10 @@ from tkinter import messagebox
 from tkinter.ttk import Treeview
 import pandas as pd
 import sqlite3
-
-
+username=0
+staff_id = 0
+staff_name = 0
+staff_type = 0
 # def Check_patient_profile(main_window):
 #     main_window.destroy()
 #     view_window = tk.Tk()
@@ -204,7 +206,7 @@ def logout(main_window):
 
 def exit_to_entry(window):
     window.destroy()
-    hospital_staff_application_entry_window()
+    hospital_staff_application_entry_window_with_info()
 
 
 def get_row_data(treeview, rows):
@@ -305,7 +307,7 @@ def view_tables(main_window):
     conn.close()
 
     # Remove the buffer tables from the options list
-    options = ['Patients','Doctors','Departments']
+    options = ['Patients','Doctors','Departments','Treatments']
 
     # Create a search module
     search_frame = tk.Frame(view_window)
@@ -416,6 +418,7 @@ def view_tables(main_window):
     selected_table = tk.StringVar(view_window)
     selected_table.set(options[0])
     option_menu = tk.OptionMenu(view_window, selected_table, *options, command=on_selection_changed)
+
     option_menu.pack()
 
     # Execute the initial selection change to display the default table data
@@ -427,24 +430,197 @@ def view_tables(main_window):
 
     view_window.mainloop()
 
+def Modify_self_info(main_window):
+    main_window.destroy()
+    modify_window = tk.Tk()
+    modify_window.title("modification")
+    from main import setscreen
+    setscreen(modify_window, 800, 600)
+    label_name = tk.Label(modify_window, text="name:")
+    label_name.place(x=120, y=150)
+    entry_name = tk.Entry(modify_window, width=30)
+    entry_name.place(x=220, y=150)
+    label_type = tk.Label(modify_window, text="type:")
+    label_type.place(x=120, y=200)
+    entry_type = tk.Entry(modify_window, width=30)
+    entry_type.place(x=220, y=200)
 
-def hospital_staff_application_entry_window():
+    label_id= tk.Label(modify_window, text="id:")
+    label_id.place(x=120, y=250)
+    entry_id = tk.Entry(modify_window, width=30)
+    entry_id.place(x=220, y=250)
+    def modify_info():
+        global staff_name, staff_type
+        try:
+            name = entry_name.get()
+            type = entry_type.get()
+            id=int( entry_id.get())
+            if name == '' or type == ''or id=='':
+                messagebox.showerror("Error", 'please fill the blanks')
+
+            else:
+                conn = sqlite3.connect('hospital_database.db')
+                cursor = conn.cursor()
+                conn.execute('PRAGMA foreign_keys = ON')
+                # original_name = staff_name
+
+                # t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
+                # username = t.fetchall()
+
+                ######或许id也可以改
+                cursor.execute("UPDATE Hospital_Staff SET staff_id=?,staff_name=? ,staff_type=? WHERE username=?;", (id,name, type, username))
+                print(name, username,staff_id)
+                cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
+
+                conn.commit()
+                messagebox.showinfo("Successful", "success!")
+                staff_name = name
+                staff_type = type
+                conn.close()
+        except Exception as e:
+            messagebox.showerror("Error", e.args[0])
+
+    button2 = tk.Button(modify_window, text=" Modify!",
+                        command=lambda: modify_info())
+    button5 = tk.Button(modify_window, text="Exit", command=lambda: exit_to_entry(modify_window))
+    # Place the buttons vertically
+    button2.pack(side=tk.TOP, padx=10, pady=15)
+    button2.place(x=220, y=300)
+    button5.pack(side=tk.TOP, padx=10, pady=15)
+    button5.place(x=220, y=350)
+    modify_window.mainloop()
+
+# def hospital_staff_application_entry_window():
+#     main_window = tk.Tk()
+#     main_window.title("Main Application")
+#
+#
+#     from main import setscreen
+#     setscreen(main_window, 600, 400)
+#
+#
+#     # Create four parallel buttons
+#     button1 = tk.Button(main_window, text="View tables", command=lambda: view_tables(main_window))
+#     button3 = tk.Button(main_window, text="Modify self information", command=lambda: Modify_self_info(main_window))
+#     button5 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
+#
+#
+#     # Place the buttons vertically
+#     button1.pack(side=tk.TOP, padx=10, pady=15)
+#     button3.pack(side=tk.TOP, padx=10, pady=15)
+#     button5.pack(side=tk.TOP, padx=10, pady=15)
+#     main_window.mainloop()
+
+
+def hospital_staff_application_entry_window_with_info():
     main_window = tk.Tk()
     main_window.title("Main Application")
-
-
     from main import setscreen
     setscreen(main_window, 600, 400)
 
-
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="View tables", command=lambda: view_tables(main_window))
-
+    button3 = tk.Button(main_window, text="Modify self information", command=lambda: Modify_self_info(main_window))
     button5 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
-
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
-
+    button3.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
     main_window.mainloop()
+
+
+def hospital_staff_application_entry_window(realname,usernamepar):
+    global staff_id
+    global staff_name
+    global staff_type
+    global username
+    staff_name = realname
+    username=usernamepar
+    main_window = tk.Tk()
+    main_window.title("Main Application")
+    from main import setscreen
+    setscreen(main_window, 600, 400)
+
+    conn = sqlite3.connect('hospital_database.db')
+
+    c = conn.cursor()
+
+    try:
+        # Enable foreign key constraints
+        cursor = c.execute("select username  from Hospital_Staff where Hospital_Staff.username=?", (username,))
+        conn.commit()
+        result = cursor.fetchall()
+        print(result, 'ok')
+        if result:
+            try:
+
+                c.close()
+                exit_to_entry(main_window)
+
+            except sqlite3.Error as e:
+                messagebox.showerror("Error", e.args[0])
+        else:
+            # Set window size to 600x400
+
+            # Create the new realname label and entry
+            label_staff_id = tk.Label(main_window, text="staff_id :")
+            label_staff_id.place(x=120, y=150)
+            entry_staff_id = tk.Entry(main_window, width=30)
+            entry_staff_id.place(x=220, y=150)
+
+            label_staff_type = tk.Label(main_window, text="staff_type :")
+            label_staff_type.place(x=120, y=200)
+            entry_staff_type = tk.Entry(main_window, width=30)
+            entry_staff_type.place(x=220, y=200)
+
+            # Create a connection to the SQLite database
+            def checkAccount():
+                staff_id = entry_staff_id.get()
+                staff_type = entry_staff_type.get()
+
+                try:
+                    staff_id = int(staff_id)
+                except ValueError:
+                    messagebox.showerror("Error", "Invalid Input")
+                    return False
+                conn = sqlite3.connect('hospital_database.db')
+                c = conn.cursor()
+                try:
+                    # Enable foreign key constraints
+                    cursor = c.execute("select staff_id,staff_name,staff_type  from Hospital_Staff where Hospital_Staff.staff_id=?",
+                                       (staff_id,))
+                    conn.commit()
+                    result = cursor.fetchall()
+                    print(result)
+                    if not result:
+                        try:
+                            c.execute("INSERT INTO Hospital_Staff VALUES (?,?,?,?)", (staff_id, realname, staff_type,username))
+                            conn.commit()
+                            c.close()
+                            exit_to_entry(main_window)
+
+                        except sqlite3.Error as e:
+                            messagebox.showerror("Error", e.args[0])
+                    else:
+                        messagebox.showerror("Error", "Id has already existed")
+                        c.close()
+
+                except sqlite3.Error as e:
+                    messagebox.showerror("Error", e.args[0])
+                except Exception as ee:
+                    messagebox.showerror("Error", ee.args[0])
+
+            # Create four parallel buttons
+            button1 = tk.Button(main_window, text="ok", command=lambda: checkAccount())
+            button2 = tk.Button(main_window, text="exit", command=lambda: logout(main_window))
+            # Place the buttons vertically
+            button1.pack(side=tk.TOP, padx=10, pady=15)
+            button2.pack(side=tk.TOP, padx=10, pady=15)
+            button1.place(x=150, y=250)
+            button2.place(x=150, y=300)
+            main_window.mainloop()
+    except sqlite3.Error as e:
+        messagebox.showerror("Error", e.args[0])
+    except Exception as ee:
+        messagebox.showerror("Error", ee.args[0])

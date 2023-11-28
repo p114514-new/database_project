@@ -7,7 +7,7 @@ import sqlite3
 nurse_id = 0
 nurse_name = 0
 nurse_gender = 0
-
+username=0
 
 def exit_to_entry(window):
     window.destroy()
@@ -93,13 +93,17 @@ def Modify_self_info(main_window):
     label_gender.place(x=120, y=200)
     entry_gender = tk.Entry(modify_window, width=30)
     entry_gender.place(x=220, y=200)
-
+    label_id = tk.Label(modify_window, text="id:")
+    label_id.place(x=120, y=250)
+    entry_id = tk.Entry(modify_window, width=30)
+    entry_id.place(x=220, y=250)
     def modify_info():
         global nurse_name, nurse_gender
         try:
             name = entry_name.get()
             gender = entry_gender.get()
-
+            id=int(entry_id.get())
+            print(name,gender)
             if name == '' or gender == '':
                 messagebox.showerror("Error", 'please fill the blanks')
             elif gender != 'male' and gender != 'female':
@@ -109,17 +113,17 @@ def Modify_self_info(main_window):
                 conn = sqlite3.connect('hospital_database.db')
                 cursor = conn.cursor()
                 conn.execute('PRAGMA foreign_keys = ON')
-                original_name = nurse_name
+                # original_name = nurse_name
 
-                t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
-                username = t.fetchall()
+                # t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
+                # username = t.fetchall()
 
-                cursor.execute("UPDATE Nurses SET nurse_name=? ,gender=? WHERE nurse_id = ?;", (name, gender, nurse_id))
+                cursor.execute("UPDATE Nurses SET nurse_id=?,nurse_name=? ,gender=? WHERE nurse_id = ?;", (name, gender, nurse_id))
 
-                cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username[0][0]))
+                cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
                 conn.commit()
-
+                messagebox.showinfo("Successful", "success!")
                 nurse_name = name
                 nurse_gender = gender
                 conn.close()
@@ -131,9 +135,9 @@ def Modify_self_info(main_window):
     button5 = tk.Button(modify_window, text="Exit", command=lambda: exit_to_entry(modify_window))
     # Place the buttons vertically
     button2.pack(side=tk.TOP, padx=10, pady=15)
-    button2.place(x=220, y=250)
+    button2.place(x=220, y=300)
     button5.pack(side=tk.TOP, padx=10, pady=15)
-    button5.place(x=220, y=300)
+    button5.place(x=220, y=350)
     modify_window.mainloop()
 
 
@@ -166,8 +170,10 @@ def Modify_Responsibility_info(main_window):
           conn.commit()
           conn.close()
 
-        except:
-            messagebox.showerror("Error", "Wrong input")
+
+        except Exception as a:
+
+            messagebox.showerror("Error", a.args[0])
 
     ##insertion
     def insert_info():
@@ -178,12 +184,14 @@ def Modify_Responsibility_info(main_window):
             cursor = conn.cursor()
 
             conn.execute('PRAGMA foreign_keys = ON')
+            print(nurse_id,pid,rid)
             cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
 
             conn.commit()
             conn.close()
-        except:
-            messagebox.showerror("Error", "Wrong input")
+            messagebox.showinfo("success", "success")
+        except Exception as a:
+            messagebox.showerror("Error",a.args[0])
 
     ##deletion
     def delete_info():
@@ -197,8 +205,9 @@ def Modify_Responsibility_info(main_window):
 
             conn.commit()
             conn.close()
-        except:
-            messagebox.showerror("Error", "Wrong input")
+
+        except Exception as a:
+            messagebox.showerror("Error", a.args[0])
 
     button2 = tk.Button(modify_window, text=" Modify patients room according to patient_id",
                         command=lambda: modify_info())
@@ -346,7 +355,12 @@ def nurse_application_entry_window_with_info():
     main_window.title("Main Application")
     from main import setscreen
     setscreen(main_window, 600, 400)
-
+    global nurse_id
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    t = cursor.execute("SELECT nurse_id from Nurses where username=?;", (username,))
+    id = t.fetchall()
+    nurse_id = id[0][0]
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="Responsibility", command=lambda: Responsibility(main_window))
     button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
@@ -368,20 +382,25 @@ def nurse_application_entry_window_with_info():
     main_window.mainloop()
 
 
-def nurse_application_entry_window(realname):
+def nurse_application_entry_window(realname,usernamepar):
     global nurse_id
     global nurse_name
     global nurse_gender
+    global username
+    username=usernamepar
     nurse_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
     from main import setscreen
     setscreen(main_window, 600, 400)
+
     conn = sqlite3.connect('hospital_database.db')
+
     c = conn.cursor()
+
     try:
         # Enable foreign key constraints
-        cursor = c.execute("select nurse_name  from Nurses where Nurses.nurse_name=?", (realname,))
+        cursor = c.execute("select username  from Nurses where Nurses.username=?", (username,))
         conn.commit()
         result = cursor.fetchall()
         print(result, 'ok')
@@ -422,14 +441,14 @@ def nurse_application_entry_window(realname):
                 c = conn.cursor()
                 try:
                     # Enable foreign key constraints
-                    cursor = c.execute("select nurse_id,nurse_name,gender  from Nurses where Nurses.nurse_id=?",
-                                       (nurse_id,))
+                    cursor = c.execute("select nurse_id,nurse_name,gender  from Nurses where Nurses.username=?",
+                                       (username,))
                     conn.commit()
                     result = cursor.fetchall()
                     print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Nurses VALUES (?,?,?)", (nurse_id, realname, nurse_gender))
+                            c.execute("INSERT INTO Nurses VALUES (?,?,?,?)", (nurse_id, realname, nurse_gender,username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)

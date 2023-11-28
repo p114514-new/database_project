@@ -2,9 +2,11 @@ import tkinter as tk
 from tkinter import scrolledtext
 import sqlite3
 
-
-def doctor_application_entry_window(realnames):
+username=0
+def doctor_application_entry_window(realnames,usernamepar):
     global realname
+    global  username
+    username=usernamepar
     realname = realnames
     root = tk.Tk()
     root.title("Main Application")

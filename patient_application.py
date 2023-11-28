@@ -16,7 +16,7 @@ patient_address = 0
 patient_contact_number = 0
 patient_room_id = 0
 patient_bed_id = 0
-
+username=0
 
 def exit_to_entry(window):
     window.destroy()
@@ -52,7 +52,7 @@ def validate_address(address):
     return bool(pattern.match(address))
 
 
-def patient_application_entry_window(realname):
+def patient_application_entry_window(realname,usernamepar):
     global patient_id
     global patient_name
     global patient_gender
@@ -62,7 +62,8 @@ def patient_application_entry_window(realname):
     global patient_contact_number
     global patient_room_id
     global patient_bed_id
-
+    global  username
+    username=usernamepar
     patient_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
@@ -72,7 +73,7 @@ def patient_application_entry_window(realname):
     c = conn.cursor()
     try:
         # Enable foreign key constraints
-        cursor = c.execute("select patient_name from Patients where Patients.patient_name=?", (realname,))
+        cursor = c.execute("select username from Patients where Patients.username=?", (username,))
         conn.commit()
         result = cursor.fetchall()
         print(result, 'ok')
@@ -145,7 +146,7 @@ def patient_application_entry_window(realname):
                 try:
                     # Enable foreign key constraints
                     cursor = c.execute(
-                        "select patient_id,patient_name,gender,birth_date,age,address,contact_number,room_id,bed_id"
+                        "select patient_id,patient_name,gender,birth_date,age,address,contact_number"
                         " from Patients where Patients.patient_id=?",
                         (patient_id,))
                     conn.commit()
@@ -153,9 +154,9 @@ def patient_application_entry_window(realname):
                     # print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,?)", (
+                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?)", (
                                 patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
-                                patient_contact_number, patient_room_id, patient_bed_id))
+                                patient_contact_number,username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
@@ -205,7 +206,12 @@ def patient_application_entry_window_with_info():
     main_window.title("Main Application")
     from main import setscreen
     setscreen(main_window, 600, 400)
-
+    global  patient_id
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    t = cursor.execute("SELECT patient_id from Patients where username=?;", (username,))
+    id = t.fetchall()
+    patient_id=id[0][0]
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="Show Info", command=lambda: show_info(main_window))
     button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
@@ -308,15 +314,15 @@ def Modify_self_info(main_window):
                 conn.execute('PRAGMA foreign_keys = ON')
                 original_name = patient_name
 
-                t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
-                username = t.fetchall()
+                # t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
+                # username = t.fetchall()
 
                 cursor.execute(
                     "UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=?"
-                    " WHERE patient_id = ?;",
-                    (name, gender, birth_date, address, contact_number, patient_id))
+                    " WHERE username = ?;",
+                    (name, gender, birth_date, address, contact_number, username))
 
-                cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username[0][0]))
+                cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
                 conn.commit()
 
