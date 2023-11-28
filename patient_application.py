@@ -16,7 +16,8 @@ patient_address = 0
 patient_contact_number = 0
 patient_room_id = 0
 patient_bed_id = 0
-username=0
+username = 0
+
 
 def exit_to_entry(window):
     window.destroy()
@@ -52,7 +53,7 @@ def validate_address(address):
     return bool(pattern.match(address))
 
 
-def patient_application_entry_window(realname,usernamepar):
+def patient_application_entry_window(realname, usernamepar):
     global patient_id
     global patient_name
     global patient_gender
@@ -62,8 +63,8 @@ def patient_application_entry_window(realname,usernamepar):
     global patient_contact_number
     global patient_room_id
     global patient_bed_id
-    global  username
-    username=usernamepar
+    global username
+    username = usernamepar
     patient_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
@@ -156,7 +157,7 @@ def patient_application_entry_window(realname,usernamepar):
                         try:
                             c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?)", (
                                 patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
-                                patient_contact_number,username))
+                                patient_contact_number, username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
@@ -171,6 +172,7 @@ def patient_application_entry_window(realname,usernamepar):
                     messagebox.showerror("Error", e.args[0])
                 except Exception as ee:
                     messagebox.showerror("Error", ee.args[0])
+
             def submit():
                 birth_date_str = entry_birth_date.get()
                 try:
@@ -206,12 +208,12 @@ def patient_application_entry_window_with_info():
     main_window.title("Main Application")
     from main import setscreen
     setscreen(main_window, 600, 400)
-    global  patient_id
+    global patient_id
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
     t = cursor.execute("SELECT patient_id from Patients where username=?;", (username,))
     id = t.fetchall()
-    patient_id=id[0][0]
+    patient_id = id[0][0]
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="Show Info", command=lambda: show_info(main_window))
     button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
@@ -417,6 +419,8 @@ def show_info(main_window):
     button_inquire.place(x=180, y=340)
     button_exit.place(x=260, y=340)
     info_window.mainloop()
+
+
 def show_departments(main_window):
     main_window.withdraw()
     department_interface = tk.Tk()
@@ -443,8 +447,8 @@ def show_departments(main_window):
 
     # Create a tkinter Treeview widget for departments
     department_treeview = tk.ttk.Treeview(department_frame)
-    department_treeview["columns"]=("one","two")
-    department_treeview.column("one", width=100 )
+    department_treeview["columns"] = ("one", "two")
+    department_treeview.column("one", width=100)
     department_treeview.column("two", width=100)
     department_treeview.heading("one", text="Department Name")
     department_treeview.heading("two", text="Department ID")
@@ -456,8 +460,8 @@ def show_departments(main_window):
 
     # Create a tkinter Treeview widget for doctors
     doctor_treeview = tk.ttk.Treeview(doctor_frame)
-    doctor_treeview["columns"]=("one","two")
-    doctor_treeview.column("one", width=100 )
+    doctor_treeview["columns"] = ("one", "two")
+    doctor_treeview.column("one", width=100)
     doctor_treeview.column("two", width=100)
     doctor_treeview.heading("one", text="Doctor Name")
     doctor_treeview.heading("two", text="Doctor ID")
@@ -469,7 +473,7 @@ def show_departments(main_window):
     message_label.pack()
 
     def on_select(event):
-        selected_item = department_treeview.selection()[0] ## get selected item
+        selected_item = department_treeview.selection()[0]  ## get selected item
         apartment_id = department_treeview.item(selected_item)['values'][1]
         message_label.config(text=f"You selected apartment with ID: {apartment_id}")
 
@@ -510,4 +514,3 @@ def show_departments(main_window):
     department_interface.protocol("WM_DELETE_WINDOW", on_close)
 
     department_interface.mainloop()
-

@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import scrolledtext
 import sqlite3
 
-username=0
-def doctor_application_entry_window(realnames,usernamepar):
+username = 0
+
+
+def doctor_application_entry_window(realnames, usernamepar):
     global realname
-    global  username
-    username=usernamepar
+    global username
+    username = usernamepar
     realname = realnames
     root = tk.Tk()
     root.title("Main Application")
@@ -50,7 +52,6 @@ def doctor_application_entry_window(realnames,usernamepar):
         text_area_doctors.delete('1.0', tk.END)
         for row in doctors_data:
             text_area_doctors.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
-
 
     def open_update_window(realname, doctors_data):
         update_window = tk.Toplevel()
@@ -97,10 +98,10 @@ def doctor_application_entry_window(realnames,usernamepar):
             change_doctor_id = True if doctor_id != doctors_data[0] else False
             change_doctor_name = True if doctor_name != doctors_data[1] else False
 
-            if (change_doctor_id):
+            if change_doctor_id:
                 cursor.execute(f"UPDATE Doctors SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
                 cursor.execute(f"UPDATE Treatments SET doctor_id='{doctor_id}' WHERE doctor_id='{doctors_data[0]}'")
-            if (change_doctor_name):
+            if change_doctor_name:
                 cursor.execute(f"UPDATE Doctors SET doctor_name='{doctor_name}' WHERE doctor_name='{doctors_data[1]}'")
                 cursor.execute(
                     f"UPDATE Login SET realname='{doctor_name}' WHERE realname='{doctors_data[1]}' AND access_level=2")
@@ -164,7 +165,6 @@ def doctor_application_entry_window(realnames,usernamepar):
         back_button = tk.Button(workbench, text="Back", command=back_to_main)
         back_button.grid(column=4, row=2)
 
-
         # 添加从数据库获取病人信息的代码，并显示在text_area_patient中
         def restore_patient(textbox):
             conn = sqlite3.connect('hospital_database.db')
@@ -193,7 +193,6 @@ def doctor_application_entry_window(realnames,usernamepar):
         patient_name_entry = tk.Entry(workbench)
         patient_name_entry.grid(column=1, row=2)
 
-
         def search_patient(name, textbox):
             conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
@@ -217,7 +216,6 @@ def doctor_application_entry_window(realnames,usernamepar):
             for row in treatment_data:
                 text_area_treatment.insert(tk.INSERT, ' | '.join(map(str, row)) + '\n')
 
-
         search_button = tk.Button(workbench, text="Search",
                                   command=lambda: search_patient(patient_name_entry.get(), text_area_patient))
         search_button.grid(column=1, row=2)
@@ -227,7 +225,8 @@ def doctor_application_entry_window(realnames,usernamepar):
         restore_button.grid(column=2, row=2)
 
         refresh_button = tk.Button(workbench, text="Refresh",
-                                   command=lambda: refresh_data_workbench(realname, text_area_patient, text_area_treatment))
+                                   command=lambda: refresh_data_workbench(realname, text_area_patient,
+                                                                          text_area_treatment))
         refresh_button.grid(column=3, row=2)
 
     personal_info_button = tk.Button(root, text="Personal Information", command=lambda: personal_info_window(realname))

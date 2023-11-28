@@ -403,7 +403,8 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
     elif is_key(table_name, column_name, primary_keys) == 2:
         # list the appearance of the foreign key in all tables
         column_names = get_all_attributes()
-        tables_having_this_key = [x for x in column_names if column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
+        tables_having_this_key = [x for x in column_names if
+                                  column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
         result = messagebox.askquestion("Dangerous Operation",
                                         "Modifying foreign keys is a dangerous approach. \n" +
                                         "All tables having this key are: " + str(tables_having_this_key) +
@@ -809,6 +810,86 @@ def query_by_SQL():
     exit_button.pack(side=tk.LEFT, padx=10, pady=15)
 
 
+def save_rooms(entries):
+    # Process the entered data (you can insert it into the database here)
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    room_ids = []
+
+    try:
+        for entry in entries:
+            room_id = entry['room_id'].get()
+            room_type = entry['room_type'].get()
+
+            if room_id != "":
+                if room_type in ("ICU", "normal"):
+                    room_ids.append(room_id)
+                    cursor.execute("PRAGMA foreign_keys = ON")
+                    cursor.execute("INSERT INTO Rooms VALUES (?, ?)", (room_id, room_type))
+
+        # Commit changes if no exceptions occurred
+        conn.commit()
+
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+        # Rollback changes in case of an exception
+        conn.rollback()
+
+    else:
+        messagebox.showinfo("Success", f"New rooms inserted: {str(room_ids)}")
+
+    finally:
+        # Close the connection
+        conn.close()
+
+
+def add_entry(entries, frame):
+    # Create new Entry widgets for room_id and room_type
+    entry = {'room_id': tk.Entry(frame), 'room_type': tk.Entry(frame)}
+
+    # Add the new Entry widgets to the entries list
+    entries.append(entry)
+
+    # Place the Entry widgets in the grid
+    row = len(entries) + 1
+    entry['room_id'].grid(row=row, column=0, padx=5, pady=5)
+    entry['room_type'].grid(row=row, column=1, padx=5, pady=5)
+
+
+def add_rooms(main_window):
+    main_window.destroy()
+
+    view_window = tk.Tk()
+    view_window.title("Confirm Doctor Table Info")
+
+    from main import setscreen
+    setscreen(view_window, 800, 600)
+
+    # Create a frame to hold the Entry widgets
+    entry_frame = tk.Frame(view_window)
+    entry_frame.pack(padx=20, pady=20)
+
+    # Create labels for room_id and room_type
+    tk.Label(entry_frame, text="Room ID").grid(row=0, column=0, padx=5, pady=5)
+    tk.Label(entry_frame, text="Room Type").grid(row=0, column=1, padx=5, pady=5)
+
+    # Create a list to store Entry widgets
+    entries = []
+
+    # Add an initial entry
+    add_entry(entries, entry_frame)
+
+    # Create a button to add new entries
+    add_button = tk.Button(view_window, text="Add Entry", command=lambda: add_entry(entries, entry_frame))
+    add_button.pack(pady=10)
+
+    # Create a button to save the entered data
+    save_button = tk.Button(view_window, text="Save Entries", command=lambda: save_rooms(entries))
+    save_button.pack(pady=10)
+
+    view_window.mainloop()
+
+
 def logout(main_window):
     main_window.destroy()
     from main import create_login_window
@@ -828,7 +909,8 @@ def admin_application_entry_window():
     button4 = tk.Button(main_window, text="confirm department info",
                         command=lambda: confirm_departments_info(main_window))
     button5 = tk.Button(main_window, text="query by SQL", command=query_by_SQL)
-    button6 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
+    button6 = tk.Button(main_window, text="add rooms", command=lambda: add_rooms(main_window))
+    button7 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
@@ -837,5 +919,6 @@ def admin_application_entry_window():
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
     button6.pack(side=tk.TOP, padx=10, pady=15)
+    button7.pack(side=tk.TOP, padx=10, pady=15)
 
     main_window.mainloop()

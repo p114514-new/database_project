@@ -7,7 +7,8 @@ import sqlite3
 nurse_id = 0
 nurse_name = 0
 nurse_gender = 0
-username=0
+username = 0
+
 
 def exit_to_entry(window):
     window.destroy()
@@ -97,13 +98,14 @@ def Modify_self_info(main_window):
     label_id.place(x=120, y=250)
     entry_id = tk.Entry(modify_window, width=30)
     entry_id.place(x=220, y=250)
+
     def modify_info():
         global nurse_name, nurse_gender
         try:
             name = entry_name.get()
             gender = entry_gender.get()
-            id=int(entry_id.get())
-            print(name,gender)
+            id = int(entry_id.get())
+            print(name, gender)
             if name == '' or gender == '':
                 messagebox.showerror("Error", 'please fill the blanks')
             elif gender != 'male' and gender != 'female':
@@ -118,7 +120,8 @@ def Modify_self_info(main_window):
                 # t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
                 # username = t.fetchall()
 
-                cursor.execute("UPDATE Nurses SET nurse_id=?,nurse_name=? ,gender=? WHERE nurse_id = ?;", (name, gender, nurse_id))
+                cursor.execute("UPDATE Nurses SET nurse_id=?,nurse_name=? ,gender=? WHERE nurse_id = ?;",
+                               (name, gender, nurse_id))
 
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
@@ -161,14 +164,14 @@ def Modify_Responsibility_info(main_window):
     def modify_info():
         try:
 
-          pid=int(entry_patient_id.get())
-          rid=int(entry_room_id.get())
-          conn = sqlite3.connect('hospital_database.db')
-          cursor = conn.cursor()
-          conn.execute('PRAGMA foreign_keys = ON')
-          cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
-          conn.commit()
-          conn.close()
+            pid = int(entry_patient_id.get())
+            rid = int(entry_room_id.get())
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
+            conn.commit()
+            conn.close()
 
 
         except Exception as a:
@@ -184,14 +187,14 @@ def Modify_Responsibility_info(main_window):
             cursor = conn.cursor()
 
             conn.execute('PRAGMA foreign_keys = ON')
-            print(nurse_id,pid,rid)
+            print(nurse_id, pid, rid)
             cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
 
             conn.commit()
             conn.close()
             messagebox.showinfo("success", "success")
         except Exception as a:
-            messagebox.showerror("Error",a.args[0])
+            messagebox.showerror("Error", a.args[0])
 
     ##deletion
     def delete_info():
@@ -382,12 +385,12 @@ def nurse_application_entry_window_with_info():
     main_window.mainloop()
 
 
-def nurse_application_entry_window(realname,usernamepar):
+def nurse_application_entry_window(realname, usernamepar):
     global nurse_id
     global nurse_name
     global nurse_gender
     global username
-    username=usernamepar
+    username = usernamepar
     nurse_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
@@ -429,7 +432,7 @@ def nurse_application_entry_window(realname,usernamepar):
             def checkAccount():
                 nurse_id = entry_nurse_id.get()
                 nurse_gender = entry_nurse_gender.get()
-                if nurse_gender!='male' and nurse_gender!='female':
+                if nurse_gender != 'male' and nurse_gender != 'female':
                     messagebox.showerror("Error", "Invalid Input for gender")
                     return False
                 try:
@@ -448,7 +451,8 @@ def nurse_application_entry_window(realname,usernamepar):
                     print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Nurses VALUES (?,?,?,?)", (nurse_id, realname, nurse_gender,username))
+                            c.execute("INSERT INTO Nurses VALUES (?,?,?,?)",
+                                      (nurse_id, realname, nurse_gender, username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)

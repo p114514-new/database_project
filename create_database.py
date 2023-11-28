@@ -38,8 +38,10 @@ if __name__ == "__main__":
                 address TEXT,
                 contact_number TEXT,
                 username TEXT,
-                
-                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE
+                room_id TEXT,
+
+                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE,
+                FOREIGN KEY (room_id) REFERENCES Rooms(room_id) ON DELETE CASCADE
             )
         ''')
 
