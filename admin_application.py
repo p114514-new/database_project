@@ -887,6 +887,8 @@ def add_rooms(main_window):
     save_button = tk.Button(view_window, text="Save Entries", command=lambda: save_rooms(entries))
     save_button.pack(pady=10)
 
+    exit_button = tk.Button(view_window, text="Exit", command=lambda: exit_to_entry(view_window))
+    save_button.pack(pady=10)
     view_window.mainloop()
 
 

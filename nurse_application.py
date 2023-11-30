@@ -172,6 +172,7 @@ def Modify_Responsibility_info(main_window):
             cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
             conn.commit()
             conn.close()
+            messagebox.showinfo("success", "success")
 
 
         except Exception as a:
@@ -189,7 +190,7 @@ def Modify_Responsibility_info(main_window):
             conn.execute('PRAGMA foreign_keys = ON')
             print(nurse_id, pid, rid)
             cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
-
+            cursor.execute("UPDATE Patients SET room_id=?  WHERE patient_id = ?;", (rid, pid))
             conn.commit()
             conn.close()
             messagebox.showinfo("success", "success")
@@ -205,9 +206,10 @@ def Modify_Responsibility_info(main_window):
 
             conn.execute('PRAGMA foreign_keys = ON')
             cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=?;", (pid,))
-
+            cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
             conn.commit()
             conn.close()
+            messagebox.showinfo("success", "success")
 
         except Exception as a:
             messagebox.showerror("Error", a.args[0])
