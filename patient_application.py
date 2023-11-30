@@ -155,7 +155,7 @@ def patient_application_entry_window(realname, usernamepar):
                     # print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?)", (
+                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,null)", (
                                 patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
                                 patient_contact_number, username))
                             conn.commit()
