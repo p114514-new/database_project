@@ -155,9 +155,9 @@ def patient_application_entry_window(realname, usernamepar):
                     # print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?)", (
+                            c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,?)", (
                                 patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
-                                patient_contact_number, username))
+                                patient_contact_number, username,patient_room_id))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
@@ -204,22 +204,23 @@ def patient_application_entry_window(realname, usernamepar):
 
 
 def patient_application_entry_window_with_info():
-    main_window = tk.Tk()
-    main_window.title("Main Application")
+    application_window = tk.Tk()
+    application_window.title("Main Application")
     from main import setscreen
-    setscreen(main_window, 600, 400)
-    global patient_id
+    setscreen(application_window, 600, 400)
+    global  patient_id
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
     t = cursor.execute("SELECT patient_id from Patients where username=?;", (username,))
     id = t.fetchall()
     patient_id = id[0][0]
     # Create four parallel buttons
-    button1 = tk.Button(main_window, text="Show Info", command=lambda: show_info(main_window))
-    button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
-    button3 = tk.Button(main_window, text="Inquire your treatment", command=lambda: inquire_treatment(main_window))
-    button4 = tk.Button(main_window, text="Find doctor", command=lambda: show_departments(main_window))
-    button5 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
+    button1 = tk.Button(application_window, text="Show Info", command=lambda: show_info(application_window))
+    button2 = tk.Button(application_window, text="Modify self info", command=lambda: Modify_self_info(application_window))
+    button3 = tk.Button(application_window, text="Inquire your treatment", command=lambda: inquire_treatment(application_window))
+    button4 = tk.Button(application_window, text="Find doctor", command=lambda: show_departments(application_window))
+    button5 = tk.Button(application_window, text="Inquire your nurse", command=lambda: inquire_nurse(application_window))
+    button6 = tk.Button(application_window, text="logout", command=lambda: logout(application_window))
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
@@ -227,12 +228,12 @@ def patient_application_entry_window_with_info():
     button3.pack(side=tk.TOP, padx=10, pady=15)
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
-    # button6.pack(side=tk.TOP, padx=10, pady=15)
-    main_window.mainloop()
+    button6.pack(side=tk.TOP, padx=10, pady=15)
+    application_window.mainloop()
 
 
-def Modify_self_info(main_window):
-    main_window.destroy()
+def Modify_self_info(application_window):
+    application_window.destroy()
     modify_window = tk.Tk()
     modify_window.title("modification")
     from main import setscreen
@@ -350,8 +351,8 @@ def Modify_self_info(main_window):
     modify_window.mainloop()
 
 
-def inquire_treatment(main_window):
-    main_window.destroy()
+def inquire_treatment(application_window):
+    application_window.destroy()
     inquire_window = tk.Tk()
     inquire_window.title("Treatment Inquire")
     from main import setscreen
@@ -383,12 +384,12 @@ def inquire_treatment(main_window):
     inquire_window.mainloop()
 
 
-def show_info(main_window):
-    main_window.destroy()
+def show_info(application_window):
+    application_window.destroy()
     info_window = tk.Tk()
     info_window.title("Show info")
     from main import setscreen
-    setscreen(info_window, 800, 600)
+    setscreen(info_window, 400, 500)
 
     def show_info_function():
         global patient_id
@@ -400,29 +401,30 @@ def show_info(main_window):
         result = t.fetchall()
 
         if result:
-            # 创建一个字符串来保存格式化后的查询结果
-            result_str = "Patient Information: \n"
+            y_position = 10  # 初始y位置
             for row in result:
-                result_str += str(row) + "\n"
-            # 创建一个标签来显示查询结果
-            label_result = tk.Label(info_window, text=result_str)
-            label_result.pack()
+                for key, value in zip(cursor.description, row):
+                    label_key_value = tk.Label(info_window, text=f"{key[0]}:           {value}\n\n", fg="blue", font=("Helvetica", 12))  # 修改了这里
+                    label_key_value.place(x=10, y=y_position)  # 使用place()方法
+                    y_position += 40  # 更新y位置
         else:
             messagebox.showerror("Error", "No such patient found")
 
         conn.close()
 
     # Create buttons
-    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
-    button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
+    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function(), width=10, height=2)
+    button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window),width=10, height=2)
 
-    button_inquire.place(x=180, y=340)
-    button_exit.place(x=260, y=340)
+    button_inquire.place(x=100, y=400)
+    button_exit.place(x=180, y=400)
     info_window.mainloop()
 
 
-def show_departments(main_window):
-    main_window.withdraw()
+
+
+def show_departments(application_window):
+    application_window.withdraw()
     department_interface = tk.Tk()
     department_interface.title("Select Department")
     from main import setscreen
@@ -509,8 +511,34 @@ def show_departments(main_window):
 
     def on_close():
         department_interface.destroy()
-        main_window.deiconify()
+        application_window.deiconify()
 
     department_interface.protocol("WM_DELETE_WINDOW", on_close)
 
     department_interface.mainloop()
+def inquire_nurse(application_window):
+    application_window.destroy()
+    inquire_window = tk.Tk()
+    inquire_window.title("Treatment Inquire")
+    from main import setscreen
+    setscreen(inquire_window, 800, 600)
+    def inquire_nurse_function():
+        global patient_id
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+        conn.execute('PRAGMA foreign_keys = ON')
+        t = cursor.execute("SELECT nurse_id from Nurse_Patient_Room where patient_id=?;", (patient_id,))
+        result = t.fetchall()
+
+        if result:
+            # 创建一个标签来显示查询结果
+            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n" + str(result))
+            label_result.place(x=180, y=420)
+        else:
+            messagebox.showerror("Error", "No nurse found for this patient ID")
+
+        conn.close()
+
+    # Create a button for the new function
+    button_inquire_nurse = tk.Button(inquire_window, text="Inquire Nurse", command=lambda: inquire_nurse_function())
+    button_inquire_nurse.place(x=340, y=340)
