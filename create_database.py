@@ -1,16 +1,16 @@
 import sqlite3
 import tkinter as tk
 
-conn = sqlite3.connect('hospital_database.db')
-cursor = conn.cursor()
-cursor.execute("insert into Rooms VALUES (0,'ICU')")
-conn.commit()
-conn.close()
+# conn = sqlite3.connect('hospital_database.db')
+# cursor = conn.cursor()
+# cursor.execute("insert into Rooms VALUES (0,'ICU')")
+# conn.commit()
+# conn.close()
 if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",
                   "Rooms--4", "Nurses--5", "Nurse_Patient_Room--6", "Hospital_Staff--7",
                   "Login--8", "Buffer1--9", "Buffer2--10"]
-    selected_table = all_tables[7]
+    selected_table = all_tables[0]
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
                 )
             ''')
-    if selected_table == all_tables[7]:
+    if selected_table == all_tables[0]:
         cursor.execute('''
             CREATE TABLE Patients (
                 patient_id INTEGER PRIMARY KEY,
