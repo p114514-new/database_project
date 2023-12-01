@@ -836,7 +836,10 @@ def save_rooms(entries):
         conn.rollback()
 
     else:
-        messagebox.showinfo("Success", f"New rooms inserted: {str(room_ids)}")
+        if len(room_ids) == 0:
+            messagebox.showinfo("Info", "No new rooms inserted. Check if your entries are filled in correctly.")
+        else:
+            messagebox.showinfo("Success", f"New rooms inserted: {str(room_ids)}")
 
     finally:
         # Close the connection
@@ -844,6 +847,9 @@ def save_rooms(entries):
 
 
 def add_entry(entries, frame):
+    if len(entries) >= 5:
+        messagebox.showwarning("Warning", "You can only add up to 5 entries at a time.")
+        return
     # Create new Entry widgets for room_id and room_type
     entry = {'room_id': tk.Entry(frame), 'room_type': tk.Entry(frame)}
 
@@ -879,16 +885,21 @@ def add_rooms(main_window):
     # Add an initial entry
     add_entry(entries, entry_frame)
 
-    # Create a button to add new entries
-    add_button = tk.Button(view_window, text="Add Entry", command=lambda: add_entry(entries, entry_frame))
-    add_button.pack(pady=10)
+    button_frame = tk.Frame(view_window)
+    button_frame.pack(pady=10)
 
-    # Create a button to save the entered data
-    save_button = tk.Button(view_window, text="Save Entries", command=lambda: save_rooms(entries))
-    save_button.pack(pady=10)
+    add_button = tk.Button(button_frame, text="Add Entry", command=lambda: add_entry(entries, entry_frame))
+    add_button.pack(side="left", padx=(0, 30))
 
-    exit_button = tk.Button(view_window, text="Exit", command=lambda: exit_to_entry(view_window))
-    save_button.pack(pady=10)
+    save_button = tk.Button(button_frame, text="Save Entries", command=lambda: save_rooms(entries))
+    save_button.pack(side="left", padx=(0, 30))
+
+    exit_button = tk.Button(button_frame, text="Exit", command=lambda: exit_to_entry(view_window))
+    exit_button.pack(side="left", ipadx=20)
+
+    # Center the button frame within the view window
+    view_window.update()
+    button_frame.place(relx=0.5, rely=0.5, anchor="center")
     view_window.mainloop()
 
 
@@ -914,13 +925,23 @@ def admin_application_entry_window():
     button6 = tk.Button(main_window, text="add rooms", command=lambda: add_rooms(main_window))
     button7 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
-    # Place the buttons vertically
-    button1.pack(side=tk.TOP, padx=10, pady=15)
-    button2.pack(side=tk.TOP, padx=10, pady=15)
-    button3.pack(side=tk.TOP, padx=10, pady=15)
-    button4.pack(side=tk.TOP, padx=10, pady=15)
-    button5.pack(side=tk.TOP, padx=10, pady=15)
-    button6.pack(side=tk.TOP, padx=10, pady=15)
-    button7.pack(side=tk.TOP, padx=10, pady=15)
+    # Place the buttons two in a row
+    button1.grid(row=0, column=1, padx=20, pady=15, sticky="ew")
+    button2.grid(row=0, column=3, pady=15, sticky="ew")
+    button3.grid(row=1, column=1, padx=20, pady=15, sticky="ew")
+    button4.grid(row=1, column=3, pady=15, sticky="ew")
+    button5.grid(row=2, column=1, padx=20, pady=15, sticky="ew")
+    button6.grid(row=2, column=3, pady=15, sticky="ew")
+    button7.grid(row=3, column=2, sticky="ew")
+
+    main_window.grid_rowconfigure(0, weight=1)
+    main_window.grid_rowconfigure(1, weight=1)
+    main_window.grid_rowconfigure(2, weight=1)
+    main_window.grid_rowconfigure(3, weight=1)
+    main_window.grid_columnconfigure(0, weight=1)
+    main_window.grid_columnconfigure(1, weight=3)
+    main_window.grid_columnconfigure(2, weight=2)
+    main_window.grid_columnconfigure(3, weight=3)
+    main_window.grid_columnconfigure(4, weight=2)
 
     main_window.mainloop()
