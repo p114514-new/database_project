@@ -3,10 +3,13 @@ from tkinter import messagebox
 from tkinter.ttk import Treeview
 import pandas as pd
 import sqlite3
-username=0
+
+username = 0
 staff_id = 0
 staff_name = 0
 staff_type = 0
+
+
 # def Check_patient_profile(main_window):
 #     main_window.destroy()
 #     view_window = tk.Tk()
@@ -215,18 +218,20 @@ def get_row_data(treeview, rows):
         item_id = treeview.get_children()[row]
         values.append(treeview.item(item_id)['values'])
     return values
+
+
 def search_views(treeview, table, search_entry, search_column):
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
 
     name = search_entry.get().strip()  # Get the entered doctor's name
     try:
-     if name == "":
-        # If the search entry is empty, query the entire Doctors table
-        cursor.execute(f"SELECT * FROM {table}")
-     else:
-        # Otherwise, search for the entered doctor's name
-        cursor.execute("SELECT * FROM " + table + " WHERE " + search_column[table] + " LIKE ?", ('%' + name + '%',))
+        if name == "":
+            # If the search entry is empty, query the entire Doctors table
+            cursor.execute(f"SELECT * FROM {table}")
+        else:
+            # Otherwise, search for the entered doctor's name
+            cursor.execute("SELECT * FROM " + table + " WHERE " + search_column[table] + " LIKE ?", ('%' + name + '%',))
     except:
         messagebox.showerror("Error", "Wrong input")
     search_results = cursor.fetchall()
@@ -240,21 +245,23 @@ def search_views(treeview, table, search_entry, search_column):
         # Add 'I' prefix and zero-padding to the index
         index = 'I' + str(i).zfill(3)
         treeview.insert("", "end", iid=index, values=row)
+
+
 def filter_views(treeview, table, search_entry, myfilter):
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
     try:
-       filt = int(search_entry.get())
+        filt = int(search_entry.get())
     except:
-       filt = search_entry.get()
+        filt = search_entry.get()
     # Get the entered doctor's name
     try:
-     if not filt:
-        # If the search entry is empty, query the entire Doctors table
-        cursor.execute(f"SELECT * FROM {table}")
-     else:
-        # Otherwise, search for the entered doctor's name
-        cursor.execute("SELECT * FROM " + table + " WHERE " + myfilter+ " = ?", (filt,))
+        if not filt:
+            # If the search entry is empty, query the entire Doctors table
+            cursor.execute(f"SELECT * FROM {table}")
+        else:
+            # Otherwise, search for the entered doctor's name
+            cursor.execute("SELECT * FROM " + table + " WHERE " + myfilter + " = ?", (filt,))
     except Exception as e:
         messagebox.showerror("Error", "Wrong input")
         print(e)
@@ -269,6 +276,8 @@ def filter_views(treeview, table, search_entry, myfilter):
         # Add 'I' prefix and zero-padding to the index
         index = 'I' + str(i).zfill(3)
         treeview.insert("", "end", iid=index, values=row)
+
+
 def refresh_treeview(treeview, table: str):
     # Clear existing data in the Treeview
     treeview.delete(*treeview.get_children())
@@ -289,6 +298,7 @@ def refresh_treeview(treeview, table: str):
         index = 'I' + str(i).zfill(3)
         treeview.insert("", "end", iid=index, values=row)
 
+
 def view_tables(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -307,7 +317,7 @@ def view_tables(main_window):
     conn.close()
 
     # Remove the buffer tables from the options list
-    options = ['Patients','Doctors','Departments','Treatments']
+    options = ['Patients', 'Doctors', 'Departments', 'Treatments']
 
     # Create a search module
     search_frame = tk.Frame(view_window)
@@ -329,17 +339,16 @@ def view_tables(main_window):
     # Pack the search module
     search_frame.pack(pady=10)
     search_label.grid(row=0, column=0)
-    search_entry.grid(row=0, column=1,padx=5)
+    search_entry.grid(row=0, column=1, padx=5)
     search_button.grid(row=0, column=2)
-    default_button.grid(row=0, column=3,padx=5)
+    default_button.grid(row=0, column=3, padx=5)
 
     filter_label = tk.Label(search_frame, text=f"Filtered by Department_id: ")
     filter_entry = tk.Entry(search_frame)
     filter_button = tk.Button(search_frame, text="Filter",
                               command=lambda: filter_views(treeview, 'Doctors', filter_entry, 'department_id'))
-    filter_default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, "Doctors"))
-
-
+    filter_default_button = tk.Button(search_frame, text="Default",
+                                      command=lambda: refresh_treeview(treeview, "Doctors"))
 
     # Create a tkinter Treeview widget
     treeview = tk.ttk.Treeview(view_window)
@@ -353,11 +362,11 @@ def view_tables(main_window):
         search_label.config(text=f"Search for {name_for_search_frame[selection]}: ")
         search_button.config(command=lambda: search_views(treeview, selection, search_entry, search_column))
         default_button.config(command=lambda: refresh_treeview(treeview, selection))
-        if selection=="Doctors":
+        if selection == "Doctors":
             filter_label.grid(row=1, column=0)
-            filter_entry.grid(row=1, column=1,padx=5)
+            filter_entry.grid(row=1, column=1, padx=5)
             filter_button.grid(row=1, column=2)
-            filter_default_button.grid(row=1, column=3,padx=5)
+            filter_default_button.grid(row=1, column=3, padx=5)
         else:
             filter_label.pack_forget()
             filter_entry.pack_forget()
@@ -430,32 +439,42 @@ def view_tables(main_window):
 
     view_window.mainloop()
 
+
 def Modify_self_info(main_window):
     main_window.destroy()
     modify_window = tk.Tk()
     modify_window.title("modification")
     from main import setscreen
     setscreen(modify_window, 800, 600)
+
+    # get the original data
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Hospital_Staff WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+
     label_name = tk.Label(modify_window, text="name:")
     label_name.place(x=120, y=150)
-    entry_name = tk.Entry(modify_window, width=30)
+    entry_name = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[1]))
     entry_name.place(x=220, y=150)
     label_type = tk.Label(modify_window, text="type:")
     label_type.place(x=120, y=200)
-    entry_type = tk.Entry(modify_window, width=30)
+    entry_type = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[2]))
     entry_type.place(x=220, y=200)
 
-    label_id= tk.Label(modify_window, text="id:")
+    label_id = tk.Label(modify_window, text="id:")
     label_id.place(x=120, y=250)
-    entry_id = tk.Entry(modify_window, width=30)
+    entry_id = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[0]))
     entry_id.place(x=220, y=250)
+
     def modify_info():
         global staff_name, staff_type
         try:
             name = entry_name.get()
             type = entry_type.get()
-            id=int( entry_id.get())
-            if name == '' or type == ''or id=='':
+            id = int(entry_id.get())
+            if name == '' or type == '' or id == '':
                 messagebox.showerror("Error", 'please fill the blanks')
 
             else:
@@ -468,8 +487,9 @@ def Modify_self_info(main_window):
                 # username = t.fetchall()
 
                 ######或许id也可以改
-                cursor.execute("UPDATE Hospital_Staff SET staff_id=?,staff_name=? ,staff_type=? WHERE username=?;", (id,name, type, username))
-                print(name, username,staff_id)
+                cursor.execute("UPDATE Hospital_Staff SET staff_id=?,staff_name=? ,staff_type=? WHERE username=?;",
+                               (id, name, type, username))
+                print(name, username, staff_id)
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
                 conn.commit()
@@ -489,6 +509,7 @@ def Modify_self_info(main_window):
     button5.pack(side=tk.TOP, padx=10, pady=15)
     button5.place(x=220, y=350)
     modify_window.mainloop()
+
 
 # def hospital_staff_application_entry_window():
 #     main_window = tk.Tk()
@@ -530,13 +551,13 @@ def hospital_staff_application_entry_window_with_info():
     main_window.mainloop()
 
 
-def hospital_staff_application_entry_window(realname,usernamepar):
+def hospital_staff_application_entry_window(realname, usernamepar):
     global staff_id
     global staff_name
     global staff_type
     global username
     staff_name = realname
-    username=usernamepar
+    username = usernamepar
     main_window = tk.Tk()
     main_window.title("Main Application")
     from main import setscreen
@@ -548,7 +569,7 @@ def hospital_staff_application_entry_window(realname,usernamepar):
 
     try:
         # Enable foreign key constraints
-        cursor = c.execute("select username  from Hospital_Staff where Hospital_Staff.username=?", (username,))
+        cursor = c.execute("select username from Hospital_Staff where Hospital_Staff.username=?", (username,))
         conn.commit()
         result = cursor.fetchall()
         print(result, 'ok')
@@ -588,14 +609,16 @@ def hospital_staff_application_entry_window(realname,usernamepar):
                 c = conn.cursor()
                 try:
                     # Enable foreign key constraints
-                    cursor = c.execute("select staff_id,staff_name,staff_type  from Hospital_Staff where Hospital_Staff.staff_id=?",
-                                       (staff_id,))
+                    cursor = c.execute(
+                        "select staff_id,staff_name,staff_type  from Hospital_Staff where Hospital_Staff.staff_id=?",
+                        (staff_id,))
                     conn.commit()
                     result = cursor.fetchall()
                     print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Hospital_Staff VALUES (?,?,?,?)", (staff_id, realname, staff_type,username))
+                            c.execute("INSERT INTO Hospital_Staff VALUES (?,?,?,?)",
+                                      (staff_id, realname, staff_type, username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
