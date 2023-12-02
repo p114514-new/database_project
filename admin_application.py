@@ -847,8 +847,8 @@ def save_rooms(entries):
 
 
 def add_entry(entries, frame):
-    if len(entries) >= 5:
-        messagebox.showwarning("Warning", "You can only add up to 5 entries at a time.")
+    if len(entries) >= 10:
+        messagebox.showwarning("Warning", "You can only add up to 10 entries at a time.")
         return
     # Create new Entry widgets for room_id and room_type
     entry = {'room_id': tk.Entry(frame), 'room_type': tk.Entry(frame)}
@@ -899,7 +899,7 @@ def add_rooms(main_window):
 
     # Center the button frame within the view window
     view_window.update()
-    button_frame.place(relx=0.5, rely=0.5, anchor="center")
+    button_frame.place(relx=0.5, rely=0.8, anchor="center")
     view_window.mainloop()
 
 

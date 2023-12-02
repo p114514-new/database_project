@@ -399,14 +399,20 @@ def show_info(main_window):
         t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
         result = t.fetchall()
 
+        # get column names
+        cursor.execute("SELECT * from Patients")
+        col_name_list = [t[0] for t in cursor.description]
+
         if result:
             # 创建一个字符串来保存格式化后的查询结果
             result_str = "Patient Information: \n"
-            for row in result:
-                result_str += str(row) + "\n"
-            # 创建一个标签来显示查询结果
             label_result = tk.Label(info_window, text=result_str)
-            label_result.pack()
+            label_result.place(x=180, y=100)
+            for idx, zipped in enumerate(zip(col_name_list, result[0])):
+                result_str = '          ' + zipped[0] + ": " + str(zipped[1]) + "\n"
+                # 创建一个标签来显示查询结果
+                label_result = tk.Label(info_window, text=result_str)
+                label_result.place(x=180, y=150 + idx * 30)
         else:
             messagebox.showerror("Error", "No such patient found")
 
@@ -416,8 +422,8 @@ def show_info(main_window):
     button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
     button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
 
-    button_inquire.place(x=180, y=340)
-    button_exit.place(x=260, y=340)
+    button_inquire.place(x=180, y=500)
+    button_exit.place(x=260, y=500)
     info_window.mainloop()
 
 
