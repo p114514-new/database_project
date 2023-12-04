@@ -358,7 +358,7 @@ def inquire_treatment(application_window):
     inquire_window = tk.Tk()
     inquire_window.title("Treatment Inquire")
     from main import setscreen
-    setscreen(inquire_window, 800, 600)
+    setscreen(inquire_window, 400, 500)
 
     def inquire_treatment_function():
         global patient_id
@@ -370,8 +370,10 @@ def inquire_treatment(application_window):
 
         if result:
             # 创建一个标签来显示查询结果
-            label_result = tk.Label(inquire_window, text="Treatment Information: \n" + str(result))
-            label_result.place(x=180, y=380)
+            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n\n\n" + str(result),
+                                    font=("Helvetica", 12))
+
+            label_result.pack()
         else:
             messagebox.showerror("Error", "No treatments found for this patient ID")
 
@@ -381,8 +383,8 @@ def inquire_treatment(application_window):
     button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_treatment_function())
     button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
 
-    button_inquire.place(x=180, y=340)
-    button_exit.place(x=260, y=340)
+    button_inquire.place(x=100, y=340)
+    button_exit.place(x=180, y=340)
     inquire_window.mainloop()
 
 
