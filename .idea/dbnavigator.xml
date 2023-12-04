@@ -29,7 +29,6 @@
       <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Patients" />
       <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Rooms" />
       <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Login" />
-      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Treatments" />
       <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Nurses" />
       <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Hospital_Staff" />
     </open-files>

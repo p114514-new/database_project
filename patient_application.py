@@ -391,7 +391,7 @@ def show_info(application_window):
     info_window = tk.Tk()
     info_window.title("Show info")
     from main import setscreen
-    setscreen(info_window, 400, 500)
+    setscreen(info_window, 800, 600)
 
     def show_info_function():
         global patient_id
@@ -402,24 +402,31 @@ def show_info(application_window):
         t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
         result = t.fetchall()
 
+        # get column names
+        cursor.execute("SELECT * from Patients")
+        col_name_list = [t[0] for t in cursor.description]
+
         if result:
-            y_position = 10  # 初始y位置
-            for row in result:
-                for key, value in zip(cursor.description, row):
-                    label_key_value = tk.Label(info_window, text=f"{key[0]}:           {value}\n\n", fg="blue", font=("Helvetica", 12))  # 修改了这里
-                    label_key_value.place(x=10, y=y_position)  # 使用place()方法
-                    y_position += 40  # 更新y位置
+            # 创建一个字符串来保存格式化后的查询结果
+            result_str = "Patient Information: \n"
+            label_result = tk.Label(info_window, text=result_str)
+            label_result.place(x=180, y=100)
+            for idx, zipped in enumerate(zip(col_name_list, result[0])):
+                result_str = '          ' + zipped[0] + ": " + str(zipped[1]) + "\n"
+                # 创建一个标签来显示查询结果
+                label_result = tk.Label(info_window, text=result_str,font=("Helvetica", 12))
+                label_result.place(x=180, y=150 + idx * 30)
         else:
             messagebox.showerror("Error", "No such patient found")
 
         conn.close()
 
     # Create buttons
-    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function(), width=10, height=2)
-    button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window),width=10, height=2)
+    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
+    button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
 
-    button_inquire.place(x=100, y=400)
-    button_exit.place(x=180, y=400)
+    button_inquire.place(x=180, y=500)
+    button_exit.place(x=260, y=500)
     info_window.mainloop()
 
 def inquire_nurse(application_window):
