@@ -349,14 +349,14 @@ def view_tables(main_window):
     selected_table = tk.StringVar(view_window)
     selected_table.set(options[0])
     option_menu = tk.OptionMenu(view_window, selected_table, *options, command=on_selection_changed)
-    option_menu.pack()
+    option_menu.pack(pady=10)
 
     # Execute the initial selection change to display the default table data
     on_selection_changed(selected_table.get())
 
     exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
 
-    exit_button.pack(side=tk.BOTTOM)
+    exit_button.pack(side=tk.BOTTOM, ipadx=20, ipady=5, padx=10, pady=10)
 
     view_window.mainloop()
 
@@ -380,11 +380,11 @@ def SelectItem(event, treeview, table_name):
     primary_keys = {'Patients': ['patient_id'], 'Departments': ['department_id'], 'Doctors': ['doctor_id'],
                     'Hospital_Staff': ['staff_id'], 'Nurses': ['nurse_id'], 'Rooms': ['room_id'],
                     'Nurse_Patient_Room': ['patient_id', 'room_id'], 'Treatments': ['treatment_id'],
-                    'Login': ['realname', 'password']
+                    'Login': ['username']
                     }
 
     if new_value is not None:
-        update_value(treeview, curItem['values'], new_value, table_name, column_name, primary_keys)
+        update_value(treeview, curItem['values'], new_value, table_name, column_name, primary_keys, cell_value)
 
 
 def prompt_for_value(old_value):
@@ -392,7 +392,7 @@ def prompt_for_value(old_value):
     return new_value
 
 
-def update_value(treeview, values, new_value, table_name, column_name, primary_keys):
+def update_value(treeview, values, new_value, table_name, column_name, primary_keys, cell_value):
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
 
@@ -413,8 +413,14 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
                                         "Make sure all values for this foreign key are consistent.",
                                         icon='warning',
                                         type='yesno')
-
         if result == 'no':
+            return
+    elif is_key(table_name, column_name, primary_keys) == 3:
+        if int(new_value) == 4:
+            messagebox.showwarning("Invalid Operation", "Modifying non-admin account to admin is not allowed.")
+            return
+        if int(cell_value) == 4:
+            messagebox.showwarning("Invalid Operation", "You are cancelling your admin position.")
             return
 
     # Check if the new value is valid
@@ -437,6 +443,7 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
 
     try:
         cursor.execute(query, (new_value, *primary_key_values))
+        print(query, (new_value, *primary_key_values))
         conn.commit()
         messagebox.showinfo("Value Updated", "The value has been successfully updated.")
     except sqlite3.Error as e:
@@ -458,6 +465,8 @@ def is_key(table_name, column_name, primary_keys):
         return 1
     elif column_name in foreign_keys[table_name]:
         return 2
+    elif column_name == 'access_level':
+        return 3
     else:
         return 0
 
@@ -581,14 +590,14 @@ def modify_tables_interface(main_window):
     selected_table = tk.StringVar(modifying_interface)
     selected_table.set(options[0])
     option_menu = tk.OptionMenu(modifying_interface, selected_table, *options, command=on_selection_changed)
-    option_menu.pack()
+    option_menu.pack(pady=10)
 
     # Execute the initial selection change to display the default table data
     on_selection_changed(selected_table.get())
 
     exit_button = tk.Button(modifying_interface, text="exit", command=lambda: exit_to_entry(modifying_interface))
 
-    exit_button.pack(side=tk.BOTTOM)
+    exit_button.pack(side=tk.BOTTOM, ipadx=20, ipady=5, padx=10, pady=10)
 
     modifying_interface.mainloop()
 
@@ -668,15 +677,21 @@ def confirm_doctors_info(main_window):
     # Pack the Treeview widget
     treeview.pack(fill=tk.BOTH, expand=True)
 
-    # Create buttons
-    button1 = tk.Button(view_window, text="Confirm", width=10, height=2, command=lambda: confirm_buffer_1(treeview))
-    button2 = tk.Button(view_window, text="Deny", width=10, height=2, command=lambda: deny_buffer_1(treeview))
-    button3 = tk.Button(view_window, text="exit", width=10, height=2, command=lambda: exit_to_entry(view_window))
+    button_frame = tk.Frame(view_window)
+    button_frame.pack(pady=10)
 
-    # Pack the buttons horizontally at the bottom
+    # Create buttons
+    button1 = tk.Button(button_frame, text="Confirm", width=10, height=2, command=lambda: confirm_buffer_1(treeview))
+    button2 = tk.Button(button_frame, text="Deny", width=10, height=2, command=lambda: deny_buffer_1(treeview))
+    button3 = tk.Button(button_frame, text="exit", width=10, height=2, command=lambda: exit_to_entry(view_window))
+
     button1.pack(side=tk.LEFT, padx=10, pady=15)
     button2.pack(side=tk.LEFT, padx=10, pady=15)
     button3.pack(side=tk.LEFT, padx=10, pady=15)
+
+    # Center the button frame within the view window
+    view_window.update()
+    button_frame.pack(anchor="center")
 
     view_window.mainloop()
 
@@ -756,58 +771,92 @@ def confirm_departments_info(main_window):
     # Pack the Treeview widget
     treeview.pack(fill=tk.BOTH, expand=True)
 
-    # Create buttons
-    button1 = tk.Button(view_window, text="Confirm", width=10, height=2, command=lambda: confirm_buffer_2(treeview))
-    button2 = tk.Button(view_window, text="Deny", width=10, height=2, command=lambda: deny_buffer_2(treeview))
-    button3 = tk.Button(view_window, text="exit", width=10, height=2, command=lambda: exit_to_entry(view_window))
+    button_frame = tk.Frame(view_window)
+    button_frame.pack(pady=10)
 
-    # Pack the buttons horizontally at the bottom
+    # Create buttons
+    button1 = tk.Button(button_frame, text="Confirm", width=10, height=2, command=lambda: confirm_buffer_1(treeview))
+    button2 = tk.Button(button_frame, text="Deny", width=10, height=2, command=lambda: deny_buffer_1(treeview))
+    button3 = tk.Button(button_frame, text="exit", width=10, height=2, command=lambda: exit_to_entry(view_window))
+
     button1.pack(side=tk.LEFT, padx=10, pady=15)
     button2.pack(side=tk.LEFT, padx=10, pady=15)
     button3.pack(side=tk.LEFT, padx=10, pady=15)
 
+    # Center the button frame within the view window
+    view_window.update()
+    button_frame.pack(anchor="center")
+
     view_window.mainloop()
 
 
-def query_by_SQL():
+def query_by_SQL(main_window):
+    # warn the user to not use this function if he/she does't have to
+    result = messagebox.askquestion("Warning", "This function is only for advanced users. \n" +
+                                    "You should not be using this function if you don't have to. \n" +
+                                    "Please make sure you know what you are doing. \n" +
+                                    "Do you want to continue? ",
+                                    icon='warning',
+                                    type='yesno')
+    if result == 'no':
+        return
+
+    main_window.destroy()
+
+    # Create a new window
+    query_window = tk.Tk()
+    query_window.title("Execute SQL Commands")
+    from main import setscreen
+    setscreen(query_window, 800, 600)
+
     # define the function to submit the query
     def submit_query(query_entry, conn):
         query = query_entry.get("1.0", "end-1c")
         try:
+            cursor = conn.cursor()
             # Enable foreign key constraints
-            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute('PRAGMA foreign_keys = ON')
 
-            conn.execute(query)
-            conn.commit()
+            cursor.execute(query)
+
+            # fetch the results if the query is a select query
+            if query.lower().startswith("select"):
+                search_results = cursor.fetchall()
+                # use a messagebox to display the results
+                messagebox.showinfo("Results", str(search_results))
+            else:
+                conn.commit()
         except sqlite3.Error as e:
             messagebox.showerror("Error", e.args[0])
-        except:
-            messagebox.showerror("Error", "System error")
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
         else:
-            messagebox.showinfo("Success", "Query submitted successfully")
-
-    # Create a new window
-    query_window = tk.Tk()
-    query_window.title("Query By SQL")
-    from main import setscreen
-    setscreen(query_window, 800, 600)
+            if not query.lower().startswith("select"):
+                messagebox.showinfo("Success", "Query submitted successfully")
 
     # Create a connection to the SQLite database
     conn = sqlite3.connect('hospital_database.db')
 
     # Create a space for the user to input his/her query
-    query_label = tk.Label(query_window, text="Please input your query here:")
+    query_label = tk.Label(query_window, text="Please input your command here:")
     query_label.pack(side=tk.TOP, padx=10, pady=15)
-    query_entry = tk.Text(query_window, width=100, height=8)
+    query_entry = tk.Text(query_window, width=100, height=15)
     query_entry.pack(side=tk.TOP, padx=10, pady=15)
 
+    button_frame = tk.Frame(query_window)
+    button_frame.pack(pady=10)
+
     # Create a button for the user to submit his/her query
-    submit_button = tk.Button(query_window, text="submit", command=lambda: submit_query(query_entry, conn))
-    submit_button.pack(side=tk.LEFT, padx=10, pady=15)
+    submit_button = tk.Button(button_frame, text="submit", command=lambda: submit_query(query_entry, conn))
+    submit_button.pack(side=tk.LEFT, padx=10, pady=15, ipadx=10, ipady=5)
 
     # Create a button to exit the window
-    exit_button = tk.Button(query_window, text="exit", command=lambda: query_window.destroy())
-    exit_button.pack(side=tk.LEFT, padx=10, pady=15)
+    exit_button = tk.Button(button_frame, text="exit", command=lambda: exit_to_entry(query_window))
+    exit_button.pack(side=tk.LEFT, padx=10, pady=15, ipadx=15, ipady=5)
+
+    button_frame.pack(anchor="center")
+
+    query_window.mainloop()
 
 
 def save_rooms(entries):
@@ -921,7 +970,7 @@ def admin_application_entry_window():
     button3 = tk.Button(main_window, text="confirm doctor info", command=lambda: confirm_doctors_info(main_window))
     button4 = tk.Button(main_window, text="confirm department info",
                         command=lambda: confirm_departments_info(main_window))
-    button5 = tk.Button(main_window, text="query by SQL", command=query_by_SQL)
+    button5 = tk.Button(main_window, text="query by SQL", command=lambda: query_by_SQL(main_window))
     button6 = tk.Button(main_window, text="add rooms", command=lambda: add_rooms(main_window))
     button7 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
