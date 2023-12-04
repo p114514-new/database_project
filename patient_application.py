@@ -207,7 +207,7 @@ def patient_application_entry_window_with_info():
     application_window = tk.Tk()
     application_window.title("Main Application")
     from main import setscreen
-    setscreen(application_window, 600, 400)
+    setscreen(application_window, 600, 450)
     global  patient_id
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
@@ -220,7 +220,8 @@ def patient_application_entry_window_with_info():
     button3 = tk.Button(application_window, text="Inquire your treatment", command=lambda: inquire_treatment(application_window))
     button4 = tk.Button(application_window, text="Find doctor", command=lambda: show_departments(application_window))
     button5 = tk.Button(application_window, text="Inquire your nurse", command=lambda: inquire_nurse(application_window))
-    button6 = tk.Button(application_window, text="logout", command=lambda: logout(application_window))
+    button6 = tk.Button(application_window, text="Inquire your room",command=lambda: inquire_room(application_window))
+    button7 = tk.Button(application_window, text="logout", command=lambda: logout(application_window))
 
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
@@ -229,6 +230,7 @@ def patient_application_entry_window_with_info():
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
     button6.pack(side=tk.TOP, padx=10, pady=15)
+    button7.pack(side=tk.TOP, padx=10, pady=15)
     application_window.mainloop()
 
 
@@ -420,11 +422,77 @@ def show_info(application_window):
     button_exit.place(x=180, y=400)
     info_window.mainloop()
 
+def inquire_nurse(application_window):
+    application_window.destroy()
+    inquire_window = tk.Tk()
+    inquire_window.title("Nurse Inquire")
+    from main import setscreen
+    setscreen(inquire_window, 400, 500)
+    def inquire_nurse_function():
+        global patient_id
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+        conn.execute('PRAGMA foreign_keys = ON')
+        t = cursor.execute("SELECT nurse_id from Nurse_Patient_Room where patient_id=?;", (patient_id,))
+        result = t.fetchall()
+
+        if result:
+            # 创建一个标签来显示查询结果
+            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n\n\n" + str(result),
+                                    font=("Helvetica", 12))
+
+            label_result.pack()
+        else:
+            messagebox.showerror("Error", "No nurse found for this patient ID")
+
+        conn.close()
+
+    # Create a button for the new function
+    button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_nurse_function())
+    button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
+
+    button_inquire.place(x=100, y=340)
+    button_exit.place(x=180, y=340)
+    inquire_window.mainloop()
+
+def inquire_room(application_window):
+    application_window.destroy()
+    inquire_window = tk.Tk()
+    inquire_window.title("Room Inquire")
+    from main import setscreen
+    setscreen(inquire_window, 400, 500)
+
+    def inquire_room_function():
+        global patient_id
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+        conn.execute('PRAGMA foreign_keys = ON')
+        t = cursor.execute("SELECT room_id from Nurse_Patient_Room where patient_id=?;", (patient_id,))
+        result = t.fetchall()
+
+        if result:
+            # 创建一个标签来显示查询结果
+            label_result = tk.Label(inquire_window, text="Room ID for the patient: \n\n\n" + str(result),
+                                    font=("Helvetica", 12))
+
+            label_result.pack()
+        else:
+            messagebox.showerror("Error", "No room found for this patient ID")
+
+        conn.close()
+
+    # Create a button for the new function
+    button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_room_function())
+    button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
+
+    button_inquire.place(x=100, y=340)
+    button_exit.place(x=180, y=340)
+    inquire_window.mainloop()
 
 
 
 def show_departments(application_window):
-    application_window.withdraw()
+    application_window.destroy()
     department_interface = tk.Tk()
     department_interface.title("Select Department")
     from main import setscreen
@@ -508,37 +576,6 @@ def show_departments(application_window):
     show_doctors_button = tk.Button(department_frame, text="Show Doctors",
                                     command=lambda: show_doctors(department_id_entry.get()))
     show_doctors_button.pack()
-
-    def on_close():
-        department_interface.destroy()
-        application_window.deiconify()
-
-    department_interface.protocol("WM_DELETE_WINDOW", on_close)
-
+    button_exit = tk.Button(department_frame, text="Exit", command=lambda: exit_to_entry(department_interface))
+    button_exit.pack()
     department_interface.mainloop()
-def inquire_nurse(application_window):
-    application_window.destroy()
-    inquire_window = tk.Tk()
-    inquire_window.title("Treatment Inquire")
-    from main import setscreen
-    setscreen(inquire_window, 800, 600)
-    def inquire_nurse_function():
-        global patient_id
-        conn = sqlite3.connect('hospital_database.db')
-        cursor = conn.cursor()
-        conn.execute('PRAGMA foreign_keys = ON')
-        t = cursor.execute("SELECT nurse_id from Nurse_Patient_Room where patient_id=?;", (patient_id,))
-        result = t.fetchall()
-
-        if result:
-            # 创建一个标签来显示查询结果
-            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n" + str(result))
-            label_result.place(x=180, y=420)
-        else:
-            messagebox.showerror("Error", "No nurse found for this patient ID")
-
-        conn.close()
-
-    # Create a button for the new function
-    button_inquire_nurse = tk.Button(inquire_window, text="Inquire Nurse", command=lambda: inquire_nurse_function())
-    button_inquire_nurse.place(x=340, y=340)
