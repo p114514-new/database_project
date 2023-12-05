@@ -42,8 +42,8 @@ if __name__ == "__main__":
                 username TEXT,
                 room_id TEXT,
 
-                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE,
-                FOREIGN KEY (room_id) REFERENCES Rooms(room_id) ON DELETE CASCADE
+                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (room_id) REFERENCES Rooms(room_id) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
@@ -64,8 +64,8 @@ if __name__ == "__main__":
                 doctor_name TEXT,
                 department_id INTEGER,
                 username TEXT,
-                FOREIGN KEY (department_id) REFERENCES Departments(department_id) ON DELETE CASCADE,
-                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE
+                FOREIGN KEY (department_id) REFERENCES Departments(department_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
@@ -80,8 +80,8 @@ if __name__ == "__main__":
                 conducted_tests TEXT,
                 treatment TEXT,
                 
-                FOREIGN KEY (patient_id) REFERENCES Patients(patient_id),
-                FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id)
+                FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (doctor_id) REFERENCES Doctors(doctor_id) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
@@ -102,7 +102,7 @@ if __name__ == "__main__":
                 nurse_name TEXT,
                 gender TEXT,
                 username TEXT,
-                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE
+                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
@@ -114,9 +114,9 @@ if __name__ == "__main__":
                 patient_id INTEGER,
                 room_id TEXT,
                 PRIMARY KEY (nurse_id, patient_id),
-                FOREIGN KEY (nurse_id) REFERENCES Nurses(nurse_id) ON DELETE CASCADE,
-                FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE,
-                FOREIGN KEY (room_id) REFERENCES Rooms(room_id) ON DELETE CASCADE
+                FOREIGN KEY (nurse_id) REFERENCES Nurses(nurse_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (patient_id) REFERENCES Patients(patient_id) ON DELETE CASCADE ON UPDATE CASCADE,
+                FOREIGN KEY (room_id) REFERENCES Rooms(room_id) ON DELETE CASCADE ON UPDATE CASCADE
             )
         ''')
 
@@ -128,7 +128,7 @@ if __name__ == "__main__":
                 staff_name TEXT,
                 staff_type TEXT,
                 username TEXT,
-                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE
+                FOREIGN KEY (username) REFERENCES Login(username) ON DELETE CASCADE ON UPDATE CASCADE
                 
             )
         ''')
