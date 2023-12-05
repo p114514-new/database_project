@@ -195,6 +195,19 @@ def Responsibility(main_window):
             conn.commit()
             conn.close()
             messagebox.showinfo("success", "success")
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            res=cursor.execute("select* FROM Nurse_Patient_Room ;")
+            result=res.fetchall()
+            if not result:
+                cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
+            conn.commit()
+            conn.close()
+
+
+
 
             refresh_treeview(treeview, "Nurse_Patient_Room")
 
