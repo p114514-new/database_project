@@ -114,7 +114,16 @@ def Responsibility(main_window):
             conn = sqlite3.connect('hospital_database.db')
             cursor = conn.cursor()
             conn.execute('PRAGMA foreign_keys = ON')
+
+            res = cursor.execute("select room_id from Patients WHERE patient_id = ?;", (pid,))
+            result = res.fetchall()
+            if not result:
+
+                messagebox.showerror("Error", "Patient has no room info!")
+                return
+
             cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
+            cursor.execute("UPDATE Patients SET room_id=?  WHERE patient_id = ?;", (rid, pid))
             conn.commit()
             conn.close()
             messagebox.showinfo("success", "success")
@@ -137,6 +146,13 @@ def Responsibility(main_window):
 
             conn.execute('PRAGMA foreign_keys = ON')
             print(nurse_id, pid, rid)
+
+            res=cursor.execute("select room_id from Patients WHERE patient_id = ?;", (pid,))
+            result=res.fetchall()
+            if  result[0][0]!=rid and not result:
+                print(result[0][0],rid)
+                messagebox.showerror("Error","Patient can only have one room info!")
+                return
             cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
             cursor.execute("UPDATE Patients SET room_id=?  WHERE patient_id = ?;", (rid, pid))
             conn.commit()
@@ -146,7 +162,7 @@ def Responsibility(main_window):
             refresh_treeview(treeview, "Nurse_Patient_Room")
 
         except Exception as a:
-            messagebox.showerror("Error","Please fill the blanks!")
+            messagebox.showerror("Error", a.args[0])
 
     ##deletion
     def delete_info():
@@ -165,7 +181,7 @@ def Responsibility(main_window):
             refresh_treeview(treeview, "Nurse_Patient_Room")
 
         except Exception as a:
-            messagebox.showerror("Error","Please fill the blanks!")
+            messagebox.showerror("Error", a.args[0])
 
     def delete_info_with_nurseid():
         try:
@@ -175,7 +191,7 @@ def Responsibility(main_window):
 
             conn.execute('PRAGMA foreign_keys = ON')
             cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=? and nurse_id=?;", (pid,nurse_id))
-            cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
+
             conn.commit()
             conn.close()
             messagebox.showinfo("success", "success")
@@ -183,7 +199,7 @@ def Responsibility(main_window):
             refresh_treeview(treeview, "Nurse_Patient_Room")
 
         except Exception as a:
-            messagebox.showerror("Error","Please fill the blanks!")
+            messagebox.showerror("Error", a.args[0])
 
     button2 = tk.Button(view_window, text=" Modify patients room according to patient_id",
                         command=lambda: modify_info())
@@ -197,7 +213,7 @@ def Responsibility(main_window):
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
 
-
+    refresh_treeview(treeview, "Nurse_Patient_Room")
 
 
     view_window.mainloop()
@@ -208,25 +224,32 @@ def Modify_self_info(main_window):
     modify_window = tk.Tk()
     modify_window.title("modification")
     from main import setscreen
+
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Nurses WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+
     setscreen(modify_window, 800, 600)
     label_name = tk.Label(modify_window, text="name:")
     label_name.place(x=120, y=150)
-    entry_name = tk.Entry(modify_window, width=30)
+    entry_name = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[1]))
     entry_name.place(x=220, y=150)
     label_gender = tk.Label(modify_window, text="gender:")
     label_gender.place(x=120, y=200)
-    entry_gender = tk.Entry(modify_window, width=30)
+    entry_gender = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[2]))
     entry_gender.place(x=220, y=200)
     label_id = tk.Label(modify_window, text="id:")
     label_id.place(x=120, y=250)
-    entry_id = tk.Entry(modify_window, width=30)
+    entry_id = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[0]))
     entry_id.place(x=220, y=250)
     def set_current_info(curname,curid,curgender):
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
 
         res = cursor.execute(
-            "SELECT * FROM Nurses"
+            "SELECT * FROM Nurses where username=?",(username,)
             )
         result=res.fetchall()
         curname.set("current id:"+str(result[0][0]))

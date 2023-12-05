@@ -148,13 +148,13 @@ def patient_application_entry_window(realname, usernamepar):
                     # Enable foreign key constraints
                     cursor = c.execute(
                         "select patient_id,patient_name,gender,birth_date,age,address,contact_number"
-                        " from Patients where Patients.patient_id=?",
+                        " from Patients where patient_id=?",
                         (patient_id,))
                     # Enable foreign key constraints
-                    cursor = c.execute(
-                        "select room_id"
-                        " from Nurse_Patient_Room where Patients.patient_id=?",
-                        (patient_id,))
+                    # cursor = c.execute(
+                    #     "select room_id"
+                    #     " from Nurse_Patient_Room where Patients.patient_id=?",
+                    #     (patient_id,))
                     conn.commit()
                     result = cursor.fetchall()
                     # print(result)
@@ -162,7 +162,7 @@ def patient_application_entry_window(realname, usernamepar):
                         try:
                             c.execute("INSERT INTO Patients VALUES (?,?,?,?,?,?,?,?,null)", (
                                 patient_id, realname, patient_gender, patient_birth_date, patient_age, patient_address,
-                                patient_contact_number, username,patient_room_id))
+                                patient_contact_number, username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
