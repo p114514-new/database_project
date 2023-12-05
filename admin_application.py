@@ -78,10 +78,16 @@ def confirm_buffer_1(treeview):
         cursor = conn.cursor()
 
         try:
-            # Update the change_status column to '+'
+            answer = messagebox.askquestion("Confirm", "Are you sure to approve the selected row(s)?\n" +
+                                            "This operation cannot be undone.", icon='warning', type='yesno')
+            if answer == 'no':
+                return
+
             for row in selected_data:
                 doctor_id = row[0]
-                cursor.execute("UPDATE Buffer1 SET change_status = '+' WHERE doctor_id = ?", (doctor_id,))
+
+                # delete the row in buffer1
+                cursor.execute("DELETE FROM Buffer1 WHERE doctor_id = ?", (doctor_id,))
 
                 if row[3] != '+':
                     # Enable foreign key constraints
@@ -104,22 +110,24 @@ def confirm_buffer_1(treeview):
 
 def confirm_buffer_2(treeview):
     selected_items = treeview.selection()  # Get the selected items
-    print(selected_items)
 
     if selected_items:
         selected_lines = [int(x[1:]) - 1 for x in selected_items]
         selected_data = get_row_data(treeview, selected_lines)
-        print(selected_data)
 
         # Create a connection to the SQLite database
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
 
         try:
-            # Update the change_status column to '+'
+            answer = messagebox.askquestion("Confirm", "Are you sure to approve the selected row(s)?\n" +
+                                            "This operation cannot be undone.", icon='warning', type='yesno')
+            if answer == 'no':
+                return
             for row in selected_data:
-                deparment_id = row[0]
-                cursor.execute("UPDATE Buffer2 SET change_status = '+' WHERE department_id = ?", (deparment_id,))
+                department_id = row[0]
+                # delete the row in buffer2
+                cursor.execute("DELETE FROM Buffer2 WHERE department_id = ?", (department_id,))
 
                 if row[2] != '+':
                     # Enable foreign key constraints
@@ -152,10 +160,16 @@ def deny_buffer_1(treeview):
         cursor = conn.cursor()
 
         try:
-            # Update the change_status column to '-'
+            answer = messagebox.showinfo("Deny", "Are you sure to deny the selected row(s)?\n" +
+                                         "This operation cannot be undone.", icon='warning', type='yesno')
+            if answer == 'no':
+                return
+
             for row in selected_data:
                 doctor_id = row[0]
-                cursor.execute("UPDATE Buffer1 SET change_status = '-' WHERE doctor_id = ?", (doctor_id,))
+
+                # delete the row in buffer1
+                cursor.execute("DELETE FROM Buffer1 WHERE doctor_id = ?", (doctor_id,))
 
                 if row[3] != '-':
                     # Enable foreign key constraints
@@ -188,10 +202,16 @@ def deny_buffer_2(treeview):
         cursor = conn.cursor()
 
         try:
-            # Update the change_status column to '-'
+            answer = messagebox.showinfo("Deny", "Are you sure to deny the selected row(s)?\n" +
+                                         "This operation cannot be undone.", icon='warning', type='yesno')
+            if answer == 'no':
+                return
+
             for row in selected_data:
                 department_id = row[0]
-                cursor.execute("UPDATE Buffer2 SET change_status = '-' WHERE department_id = ?", (department_id,))
+
+                # delete the row in buffer2
+                cursor.execute("DELETE FROM Buffer2 WHERE department_id = ?", (department_id,))
 
                 if row[2] != '-':
                     # Enable foreign key constraints
