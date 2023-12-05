@@ -108,46 +108,6 @@ def confirm_buffer_1(treeview):
         messagebox.showinfo("Confirm", "Please select a row to confirm.")
 
 
-def confirm_buffer_2(treeview):
-    selected_items = treeview.selection()  # Get the selected items
-
-    if selected_items:
-        selected_lines = [int(x[1:]) - 1 for x in selected_items]
-        selected_data = get_row_data(treeview, selected_lines)
-
-        # Create a connection to the SQLite database
-        conn = sqlite3.connect('hospital_database.db')
-        cursor = conn.cursor()
-
-        try:
-            answer = messagebox.askquestion("Confirm", "Are you sure to approve the selected row(s)?\n" +
-                                            "This operation cannot be undone.", icon='warning', type='yesno')
-            if answer == 'no':
-                return
-            for row in selected_data:
-                department_id = row[0]
-                # delete the row in buffer2
-                cursor.execute("DELETE FROM Buffer2 WHERE department_id = ?", (department_id,))
-
-                if row[2] != '+':
-                    # Enable foreign key constraints
-                    conn.execute('PRAGMA foreign_keys = ON')
-
-                    cursor.execute(
-                        "INSERT INTO Departments (department_id, department_name) VALUES (?,?)", row[:-1])
-
-            conn.commit()
-            messagebox.showinfo("Confirm", "Selected rows confirmed successfully.")
-
-            refresh_treeview(treeview, 'Buffer2')
-        except Exception as e:
-            messagebox.showerror("Error", f"Error occurred while confirming rows: {str(e)}")
-        finally:
-            conn.close()
-    else:
-        messagebox.showinfo("Confirm", "Please select a row to confirm.")
-
-
 def deny_buffer_1(treeview):
     selected_items = treeview.selection()  # Get the selected items
 
@@ -190,46 +150,98 @@ def deny_buffer_1(treeview):
         messagebox.showinfo("Deny", "Please select a row to deny.")
 
 
-def deny_buffer_2(treeview):
-    selected_items = treeview.selection()  # Get the selected items
+def add_department_entry(entries, entry_frame):
+    if len(entries) >= 10:
+        messagebox.showwarning("Warning", "You can only add up to 10 entries at a time.")
+        return
+    # Create new Entry widgets for room_id and room_type
+    entry = {'department_id': tk.Entry(entry_frame), 'department_name': tk.Entry(entry_frame)}
 
-    if selected_items:
-        selected_lines = [int(x[1:]) - 1 for x in selected_items]
-        selected_data = get_row_data(treeview, selected_lines)
+    entry['department_name'].config(width=30)
 
-        # Create a connection to the SQLite database
-        conn = sqlite3.connect('hospital_database.db')
-        cursor = conn.cursor()
+    # Add the new Entry widgets to the entries list
+    entries.append(entry)
 
-        try:
-            answer = messagebox.showinfo("Deny", "Are you sure to deny the selected row(s)?\n" +
-                                         "This operation cannot be undone.", icon='warning', type='yesno')
-            if answer == 'no':
-                return
+    # Place the Entry widgets in the grid
+    row = len(entries) + 1
+    entry['department_id'].grid(row=row, column=0, padx=5, pady=5)
+    entry['department_name'].grid(row=row, column=1, padx=5, pady=5)
 
-            for row in selected_data:
-                department_id = row[0]
 
-                # delete the row in buffer2
-                cursor.execute("DELETE FROM Buffer2 WHERE department_id = ?", (department_id,))
+def save_departments(entries):
+    # Process the entered data (you can insert it into the database here)
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    department_ids = []
 
-                if row[2] != '-':
-                    # Enable foreign key constraints
-                    conn.execute('PRAGMA foreign_keys = ON')
+    try:
+        for entry in entries:
+            department_id = entry['department_id'].get()
+            department_name = entry['department_name'].get()
 
-                    cursor.execute(
-                        "DELETE FROM Departments WHERE department_id = ? AND department_name = ?", row[:-1])
+            if len(department_id) != 0:
+                department_id = int(department_id.strip())
+            if department_name:
+                department_ids.append(department_id)
+                cursor.execute("INSERT INTO Departments VALUES (?, ?)", (department_id, department_name))
 
-            conn.commit()
-            messagebox.showinfo("Deny", "Selected rows denied successfully.")
+        # Commit changes if no exceptions occurred
+        conn.commit()
 
-            refresh_treeview(treeview, 'Buffer2')
-        except Exception as e:
-            messagebox.showerror("Error", f"Error occurred while denying rows: {str(e)}")
-        finally:
-            conn.close()
+    except Exception as e:
+        messagebox.showerror("Error", str(e))
+        # Rollback changes in case of an exception
+        conn.rollback()
+
     else:
-        messagebox.showinfo("Deny", "Please select a row to deny.")
+        if len(department_ids) == 0:
+            messagebox.showinfo("Info", "No new departments inserted. Check if your entries are filled in correctly.")
+        else:
+            messagebox.showinfo("Success", f"New departments inserted: {str(department_ids)}")
+
+    finally:
+        # Close the connection
+        conn.close()
+
+
+def add_new_department(main_window):
+    main_window.destroy()
+    add_department_window = tk.Tk()
+    add_department_window.title("Add New Department")
+    from main import setscreen
+    setscreen(add_department_window, 800, 600)
+
+    # similar as add_rooms
+    # Create a frame to hold the Entry widgets
+    entry_frame = tk.Frame(add_department_window)
+    entry_frame.pack(padx=20, pady=20)
+
+    # Create labels for room_id and room_type
+    tk.Label(entry_frame, text="Department ID", ).grid(row=0, column=0, padx=5, pady=5)
+    tk.Label(entry_frame, text="Department Name").grid(row=0, column=1, padx=5, pady=5)
+
+    # Create a list to store Entry widgets
+    entries = []
+
+    # Add an initial entry
+    add_department_entry(entries, entry_frame)
+
+    button_frame = tk.Frame(add_department_window)
+    button_frame.pack(pady=10)
+
+    add_button = tk.Button(button_frame, text="Add Entry", command=lambda: add_department_entry(entries, entry_frame))
+    add_button.pack(side="left", padx=(0, 30))
+
+    save_button = tk.Button(button_frame, text="Save Entries", command=lambda: save_departments(entries))
+    save_button.pack(side="left", padx=(0, 30))
+
+    exit_button = tk.Button(button_frame, text="Exit", command=lambda: exit_to_entry(add_department_window))
+    exit_button.pack(side="left", ipadx=20)
+
+    # Center the button frame within the view window
+    add_department_window.update()
+    button_frame.place(relx=0.5, rely=0.8, anchor="center")
+    add_department_window.mainloop()
 
 
 def search_views(treeview, table, search_entry, search_column):
@@ -742,74 +754,6 @@ def search_departments(treeview, search_entry):
         treeview.insert("", "end", iid=index, values=row)
 
 
-def confirm_departments_info(main_window):
-    main_window.destroy()
-    view_window = tk.Tk()
-    view_window.title("Confirm Department Table Info")
-    from main import setscreen
-    setscreen(view_window, 800, 600)
-
-    # Create a search module
-    search_frame = tk.Frame(view_window)
-    search_label = tk.Label(search_frame, text="Search for Department's Name: ")
-    search_entry = tk.Entry(search_frame)
-    search_button = tk.Button(search_frame, text="Search", command=lambda: search_departments(treeview, search_entry))
-    default_button = tk.Button(search_frame, text="Default", command=lambda: refresh_treeview(treeview, 'Buffer2'))
-
-    # Pack the search module
-    search_frame.pack(pady=10)
-    search_label.pack(side=tk.LEFT)
-    search_entry.pack(side=tk.LEFT, padx=5)
-    search_button.pack(side=tk.LEFT)
-    default_button.pack(side=tk.LEFT, padx=5)
-
-    # Create a connection to the SQLite database
-    conn = sqlite3.connect('hospital_database.db')
-    cursor = conn.cursor()
-
-    # Retrieve the data from the Buffer1 table
-    cursor.execute("SELECT * FROM Buffer2")
-    buffer2_data = cursor.fetchall()
-
-    # Get column names from cursor description
-    column_names = [description[0] for description in cursor.description]
-
-    conn.close()
-
-    # Create a Treeview widget to display the data
-    treeview = Treeview(view_window, show="headings")
-    treeview['columns'] = tuple(column_names)  # Set the column names as the column identifiers
-
-    # Configure column headings
-    for i, column_name in enumerate(column_names):
-        treeview.heading(column_name, text=column_name)
-
-    # Insert data into the Treeview
-    for row in buffer2_data:
-        treeview.insert("", "end", values=row)
-
-    # Pack the Treeview widget
-    treeview.pack(fill=tk.BOTH, expand=True)
-
-    button_frame = tk.Frame(view_window)
-    button_frame.pack(pady=10)
-
-    # Create buttons
-    button1 = tk.Button(button_frame, text="Confirm", width=10, height=2, command=lambda: confirm_buffer_1(treeview))
-    button2 = tk.Button(button_frame, text="Deny", width=10, height=2, command=lambda: deny_buffer_1(treeview))
-    button3 = tk.Button(button_frame, text="exit", width=10, height=2, command=lambda: exit_to_entry(view_window))
-
-    button1.pack(side=tk.LEFT, padx=10, pady=15)
-    button2.pack(side=tk.LEFT, padx=10, pady=15)
-    button3.pack(side=tk.LEFT, padx=10, pady=15)
-
-    # Center the button frame within the view window
-    view_window.update()
-    button_frame.pack(anchor="center")
-
-    view_window.mainloop()
-
-
 def query_by_SQL(main_window):
     # warn the user to not use this function if he/she does't have to
     result = messagebox.askquestion("Warning", "This function is only for advanced users. \n" +
@@ -915,7 +859,7 @@ def save_rooms(entries):
         conn.close()
 
 
-def add_entry(entries, frame):
+def add_room_entry(entries, frame):
     if len(entries) >= 10:
         messagebox.showwarning("Warning", "You can only add up to 10 entries at a time.")
         return
@@ -952,12 +896,12 @@ def add_rooms(main_window):
     entries = []
 
     # Add an initial entry
-    add_entry(entries, entry_frame)
+    add_room_entry(entries, entry_frame)
 
     button_frame = tk.Frame(view_window)
     button_frame.pack(pady=10)
 
-    add_button = tk.Button(button_frame, text="Add Entry", command=lambda: add_entry(entries, entry_frame))
+    add_button = tk.Button(button_frame, text="Add Entry", command=lambda: add_room_entry(entries, entry_frame))
     add_button.pack(side="left", padx=(0, 30))
 
     save_button = tk.Button(button_frame, text="Save Entries", command=lambda: save_rooms(entries))
@@ -988,8 +932,8 @@ def admin_application_entry_window():
     button1 = tk.Button(main_window, text="view table", command=lambda: view_tables(main_window))
     button2 = tk.Button(main_window, text="modify table", command=lambda: modify_tables_interface(main_window))
     button3 = tk.Button(main_window, text="confirm doctor info", command=lambda: confirm_doctors_info(main_window))
-    button4 = tk.Button(main_window, text="confirm department info",
-                        command=lambda: confirm_departments_info(main_window))
+    button4 = tk.Button(main_window, text="add new department",
+                        command=lambda: add_new_department(main_window))
     button5 = tk.Button(main_window, text="query by SQL", command=lambda: query_by_SQL(main_window))
     button6 = tk.Button(main_window, text="add rooms", command=lambda: add_rooms(main_window))
     button7 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
