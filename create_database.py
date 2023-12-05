@@ -3,8 +3,10 @@ import tkinter as tk
 
 # conn = sqlite3.connect('hospital_database.db')
 # cursor = conn.cursor()
+#
 # cursor.execute("insert into Rooms VALUES (0,'ICU')")
 # conn.commit()
+#
 # conn.close()
 if __name__ == "__main__":
     all_tables = ["Patients--0", "Departments--1", "Doctors--2", "Treatments--3",

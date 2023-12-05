@@ -20,7 +20,25 @@ def logout(main_window):
     from main import create_login_window
     create_login_window()
 
+def refresh_treeview(treeview, table: str):
+    # Clear existing data in the Treeview
+    treeview.delete(*treeview.get_children())
 
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+
+    # Retrieve the data from the Buffer1 table
+    cursor.execute("SELECT * FROM " + table)
+    buffer1_data = cursor.fetchall()
+
+    conn.close()
+
+    # Insert data into the Treeview
+    for i, row in enumerate(buffer1_data, start=1):
+        # Add 'I' prefix and zero-padding to the index
+        index = 'I' + str(i).zfill(3)
+        treeview.insert("", "end", iid=index, values=row)
 def Responsibility(main_window):
     main_window.destroy()
     view_window = tk.Tk()
@@ -77,6 +95,111 @@ def Responsibility(main_window):
 
     exit_button.pack(side=tk.BOTTOM)
 
+    label_patient_id = tk.Label(view_window, text="patient_id :")
+    label_patient_id.pack()
+    entry_patient_id = tk.Entry(view_window, width=30)
+    entry_patient_id.pack()
+    label_room_id = tk.Label(view_window, text="room_id:")
+    label_room_id.pack()
+    entry_room_id = tk.Entry(view_window, width=30)
+    entry_room_id.pack()
+
+    # patient is the primary key?
+    ##modification
+    def modify_info():
+        try:
+
+            pid = int(entry_patient_id.get())
+            rid = int(entry_room_id.get())
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("UPDATE Nurse_Patient_Room SET room_id=?  WHERE patient_id = ?;", (rid, pid))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview,"Nurse_Patient_Room")
+
+
+        except Exception as a:
+
+            messagebox.showerror("Error", a.args[0])
+
+
+    ##insertion
+    def insert_info():
+        try:
+            pid = int(entry_patient_id.get())
+            rid = int(entry_room_id.get())
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            print(nurse_id, pid, rid)
+            cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
+            cursor.execute("UPDATE Patients SET room_id=?  WHERE patient_id = ?;", (rid, pid))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview, "Nurse_Patient_Room")
+
+        except Exception as a:
+            messagebox.showerror("Error","Please fill the blanks!")
+
+    ##deletion
+    def delete_info():
+        try:
+            pid = int(entry_patient_id.get())
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=?;", (pid,))
+            cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview, "Nurse_Patient_Room")
+
+        except Exception as a:
+            messagebox.showerror("Error","Please fill the blanks!")
+
+    def delete_info_with_nurseid():
+        try:
+            pid = int(entry_patient_id.get())
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=? and nurse_id=?;", (pid,nurse_id))
+            cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview, "Nurse_Patient_Room")
+
+        except Exception as a:
+            messagebox.showerror("Error","Please fill the blanks!")
+
+    button2 = tk.Button(view_window, text=" Modify patients room according to patient_id",
+                        command=lambda: modify_info())
+    button3 = tk.Button(view_window, text=" Insert a new record", command=lambda: insert_info())
+    button4 = tk.Button(view_window, text=" Patient with the pid leaves the room ", command=lambda: delete_info())
+    button5 = tk.Button(view_window, text=" Discard responsibility with pid ", command=lambda: delete_info_with_nurseid())
+
+    # Place the buttons vertically
+    button2.pack(side=tk.TOP, padx=10, pady=15)
+    button3.pack(side=tk.TOP, padx=10, pady=15)
+    button4.pack(side=tk.TOP, padx=10, pady=15)
+    button5.pack(side=tk.TOP, padx=10, pady=15)
+
+
+
+
     view_window.mainloop()
 
 
@@ -98,9 +221,42 @@ def Modify_self_info(main_window):
     label_id.place(x=120, y=250)
     entry_id = tk.Entry(modify_window, width=30)
     entry_id.place(x=220, y=250)
+    def set_current_info(curname,curid,curgender):
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+
+        res = cursor.execute(
+            "SELECT * FROM Nurses"
+            )
+        result=res.fetchall()
+        curname.set("current id:"+str(result[0][0]))
+        curid.set("current name:"+str(result[0][1]))
+        curgender.set("current gender:"+str(result[0][2]))
+
+    curname=tk.StringVar()
+    curid=tk.StringVar()
+    curgender=tk.StringVar()
+
+    current_label_name = tk.Label(modify_window,  textvariable=curname)
+    current_label_id = tk.Label(modify_window, textvariable=curid)
+    current_label_gender = tk.Label(modify_window, textvariable=curgender)
+
+    current_label_name.pack()
+    current_label_id.pack()
+    current_label_gender.pack()
+
+
+    set_current_info(curname,curid,curgender)
+
+
+
+
+
+
+
 
     def modify_info():
-        global nurse_name, nurse_gender
+        global nurse_name, nurse_gender,nurse_id
         try:
             name = entry_name.get()
             gender = entry_gender.get()
@@ -120,16 +276,22 @@ def Modify_self_info(main_window):
                 # t = cursor.execute("SELECT username from Login where realname=?;", (original_name,))
                 # username = t.fetchall()
 
-                cursor.execute("UPDATE Nurses SET nurse_id=?,nurse_name=? ,gender=? WHERE nurse_id = ?;",
-                               (name, gender, nurse_id))
-
+                cursor.execute("UPDATE Nurses SET nurse_id=?,nurse_name=? ,gender=? WHERE username = ?;",
+                               (id,name, gender,username))
+                print(nurse_id)
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
                 conn.commit()
                 messagebox.showinfo("Successful", "success!")
                 nurse_name = name
                 nurse_gender = gender
+                nurse_id= id
+
+
                 conn.close()
+
+                set_current_info(curname,curid,curgender)
+
         except Exception as e:
             messagebox.showerror("Error", e.args[0])
 
@@ -369,8 +531,8 @@ def nurse_application_entry_window_with_info():
     # Create four parallel buttons
     button1 = tk.Button(main_window, text="Responsibility", command=lambda: Responsibility(main_window))
     button2 = tk.Button(main_window, text="Modify self info", command=lambda: Modify_self_info(main_window))
-    button3 = tk.Button(main_window, text="Modify Responsibility info",
-                        command=lambda: Modify_Responsibility_info(main_window))
+    # button3 = tk.Button(main_window, text="Modify Responsibility info",
+    #                     command=lambda: Modify_Responsibility_info(main_window))
 
     button4 = tk.Button(main_window, text="Check patient profile",
                         command=lambda: Check_patient_profile(main_window))
@@ -380,7 +542,7 @@ def nurse_application_entry_window_with_info():
     # Place the buttons vertically
     button1.pack(side=tk.TOP, padx=10, pady=15)
     button2.pack(side=tk.TOP, padx=10, pady=15)
-    button3.pack(side=tk.TOP, padx=10, pady=15)
+    # button3.pack(side=tk.TOP, padx=10, pady=15)
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button5.pack(side=tk.TOP, padx=10, pady=15)
     button6.pack(side=tk.TOP, padx=10, pady=15)

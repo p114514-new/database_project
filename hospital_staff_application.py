@@ -468,6 +468,33 @@ def Modify_self_info(main_window):
     entry_id = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[0]))
     entry_id.place(x=220, y=250)
 
+    def set_current_info(curname, curid, curtype):
+        conn = sqlite3.connect('hospital_database.db')
+        cursor = conn.cursor()
+
+        res = cursor.execute(
+            "SELECT * FROM Hospital_Staff"
+        )
+        result = res.fetchall()
+        curname.set("current id:" + str(result[0][0]))
+        curid.set("current name:" + str(result[0][1]))
+        curtype.set("current type:" + str(result[0][2]))
+
+    curname = tk.StringVar()
+    curid = tk.StringVar()
+    curtype = tk.StringVar()
+
+    current_label_name = tk.Label(modify_window, textvariable=curname)
+    current_label_id = tk.Label(modify_window, textvariable=curid)
+    current_label_type = tk.Label(modify_window, textvariable=curtype)
+
+    current_label_name.pack()
+    current_label_id.pack()
+    current_label_type.pack()
+
+    set_current_info(curname, curid, curtype)
+
+
     def modify_info():
         global staff_name, staff_type
         try:
@@ -497,6 +524,9 @@ def Modify_self_info(main_window):
                 staff_name = name
                 staff_type = type
                 conn.close()
+
+                set_current_info(curname,curid,curtype)
+
         except Exception as e:
             messagebox.showerror("Error", e.args[0])
 
