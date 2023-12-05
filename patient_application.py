@@ -150,6 +150,11 @@ def patient_application_entry_window(realname, usernamepar):
                         "select patient_id,patient_name,gender,birth_date,age,address,contact_number"
                         " from Patients where Patients.patient_id=?",
                         (patient_id,))
+                    # Enable foreign key constraints
+                    cursor = c.execute(
+                        "select room_id"
+                        " from Nurse_Patient_Room where Patients.patient_id=?",
+                        (patient_id,))
                     conn.commit()
                     result = cursor.fetchall()
                     # print(result)
