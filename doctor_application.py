@@ -54,12 +54,13 @@ def Modify_self_info(main_window):
                 messagebox.showerror("Error", "Invalid Input for name")
                 return False
             else:
+                print(doctor_id)
                 conn = sqlite3.connect('hospital_database.db')
                 cursor = conn.cursor()
                 conn.execute('PRAGMA foreign_keys = ON')
 
                 cursor.execute("UPDATE Doctors SET doctor_id=?,doctor_name=? WHERE doctor_id = ?;",
-                               (id, name))
+                               (id, name, doctor_id))
 
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
@@ -92,7 +93,7 @@ def self_info(main_window):
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
 
-    res = cursor.execute("select username  from Doctors where Doctors.username=?", (username,))
+    res = cursor.execute("select * from Doctors where Doctors.username=?", (username,))
 
     table_data = res.fetchall()
     # Create a tkinter Treeview widget
@@ -136,21 +137,23 @@ def self_info(main_window):
             # Pack the Treeview widget
     treeview.pack(expand=True, fill=tk.BOTH)
 
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+    exit_button.pack(side=tk.BOTTOM)
+
     update_button = tk.Button(view_window, text="update", command=lambda: Modify_self_info(view_window))
     update_button.pack(side=tk.BOTTOM)
 
-    refresh_button = tk.Button(view_window, text="update", command=lambda: refresh_self_info())
+    refresh_button = tk.Button(view_window, text="refresh", command=lambda: refresh_self_info())
     refresh_button.pack(side=tk.BOTTOM)
 
-    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
-    exit_button.pack(side=tk.BOTTOM)
+
 
     def refresh_self_info():
         # Create a connection to the SQLite database
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
 
-        res = cursor.execute("select username  from Doctors where Doctors.username=?", (username,))
+        res = cursor.execute("select * from Doctors where Doctors.username=?", (username,))
 
         table_data = res.fetchall()
         conn.close()
@@ -187,6 +190,7 @@ def search_views(treeview, table, search_entry, search_column):
 
     name = search_entry.get().strip()  # Get the entered doctor's name
 
+    print(table, name, search_column)
     if name == "":
         # If the search entry is empty, query the entire Doctors table
         cursor.execute(f"SELECT * FROM {table}")
@@ -369,23 +373,14 @@ def workbench(main_window):
     from main import setscreen
     setscreen(modifying_interface, 800, 600)
 
-    # Create a connection to the SQLite database
-    conn = sqlite3.connect('hospital_database.db')
-    cursor = conn.cursor()
-
-    # Retrieve the available tables from the database schema
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    tables = cursor.fetchall()
-
-    conn.close()
-
+    tables = [('Treatments',), ('Patients',)]
     # Remove the buffer tables from the options list
     options = [table[0] for table in tables if table[0] not in ["Buffer1", "Buffer2"]]
-
+    print(tables)
     # Create a search module
     search_frame = tk.Frame(modifying_interface)
     name_for_search_frame = {'Patients': 'Patient Name', 'Treatments': 'Patient id'}
-    search_column = {'Patients': 'Patient Name', 'Treatments': 'Patient id'}
+    search_column = {'Patients': 'patient_name', 'Treatments': 'patient_id'}
     search_label = tk.Label(search_frame, text=f"Search for {name_for_search_frame[options[0]]}: ")
     search_entry = tk.Entry(search_frame)
     search_button = tk.Button(search_frame, text="Search",
@@ -485,12 +480,12 @@ def doctor_application_entry_window_with_info():
     main_window.title("Main Application")
     from main import setscreen
     setscreen(main_window, 600, 400)
-    global nurse_id
+    global doctor_id
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
     t = cursor.execute("SELECT doctor_id from Doctors where username=?;", (username,))
     id = t.fetchall()
-    nurse_id = id[0][0]
+    doctor_id = id[0][0]
     # Create four parallel buttons
 
     button2 = tk.Button(main_window, text="self info", command=lambda: self_info(main_window))
