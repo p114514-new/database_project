@@ -32,14 +32,21 @@ def Modify_self_info(main_window):
     modify_window = tk.Tk()
     modify_window.title("modification")
     from main import setscreen
+
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Doctors WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+
     setscreen(modify_window, 800, 600)
     label_name = tk.Label(modify_window, text="name:")
     label_name.place(x=120, y=150)
-    entry_name = tk.Entry(modify_window, width=30)
+    entry_name = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[1]))
     entry_name.place(x=220, y=150)
     label_id = tk.Label(modify_window, text="id:")
     label_id.place(x=120, y=250)
-    entry_id = tk.Entry(modify_window, width=30)
+    entry_id = tk.Entry(modify_window, width=30, textvariable=tk.StringVar(modify_window, value=result[0]))
     entry_id.place(x=220, y=250)
 
     def modify_info():
@@ -474,6 +481,177 @@ def workbench(main_window):
 
     modifying_interface.mainloop()
 
+def Treatment(main_window):
+    main_window.destroy()
+    view_window = tk.Tk()
+    view_window.title("View Table")
+    from main import setscreen
+
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    res = cursor.execute("SELECT * FROM Treatments WHERE doctor_id=?", (doctor_id,))
+    table_data = res.fetchall()
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(view_window)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(view_window)
+    conn.close()
+
+    if table_data:
+        # Create a pandas DataFrame from the table data
+        df = pd.DataFrame(table_data)
+        df.columns = [description[0] for description in cursor.description]
+
+        # Destroy and recreate the columns in the Treeview widget
+        treeview.destroy()
+        treeview = tk.ttk.Treeview(view_window)
+
+        # Create the column headings in the Treeview widget
+        table_columns = df.columns
+        treeview["columns"] = tuple(table_columns)
+        for column in table_columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+        # Insert the table data into the Treeview widget
+        for i, row in df.iterrows():
+            treeview.insert("", "end", values=tuple(row))
+    else:
+        # No data returned, display a message
+        message_label.config(text="No data available for this table.")
+        message_label.pack()
+
+        # No data available, but we can still refresh the column names
+        columns = [description[0] for description in cursor.description]
+        treeview["columns"] = tuple(columns)
+        for column in columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+            # Pack the Treeview widget
+    treeview.pack(expand=True, fill=tk.BOTH)
+
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+
+    exit_button.pack(side=tk.BOTTOM)
+
+    label_treatment_id = tk.Label(view_window, text="treatment_id :")
+    label_treatment_id.pack()
+    entry_treatment_id = tk.Entry(view_window, width=30)
+    entry_treatment_id.pack()
+
+
+    label_patient_id = tk.Label(view_window, text="patient_id :")
+    label_patient_id.pack()
+    entry_patient_id = tk.Entry(view_window, width=30)
+    entry_patient_id.pack()
+    label_disease = tk.Label(view_window, text="disease name:")
+    label_disease.pack()
+    entry_disease = tk.Entry(view_window, width=30)
+    entry_disease.pack()
+    label_conducted_tests = tk.Label(view_window, text="conducted_tests:")
+    label_conducted_tests.pack()
+    entry_conducted_tests = tk.Entry(view_window, width=30)
+    entry_conducted_tests.pack()
+
+    label_treatment = tk.Label(view_window, text="treatment:")
+    label_treatment.pack()
+    entry_treatment = tk.Entry(view_window, width=30)
+    entry_treatment.pack()
+
+    # patient is the primary key?
+    ##modification
+    def modify_info():
+        try:
+
+            pid = int(entry_patient_id.get())
+            tid = int(entry_treatment_id.get())
+            disease=entry_disease.get()
+            conduct=entry_conducted_tests.get()
+            tre=entry_treatment.get()
+
+
+
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+            conn.execute('PRAGMA foreign_keys = ON')
+
+            cursor.execute("UPDATE Treatments SET treatment_id=?,patient_id=?,name_of_disease=?,conducted_tests=?,treatment=?  WHERE doctor_id = ?;", (tid, pid,disease,conduct,tre,doctor_id))
+
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview,"Treatments")
+
+
+        except Exception as a:
+
+            messagebox.showerror("Error", a.args[0])
+
+
+    ##insertion
+    def insert_info():
+        try:
+            pid = int(entry_patient_id.get())
+            tid = int(entry_treatment_id.get())
+            disease = entry_disease.get()
+            conduct = entry_conducted_tests.get()
+            tre = entry_treatment.get()
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+            conn.execute('PRAGMA foreign_keys = ON')
+
+            cursor.execute("INSERT INTO Treatments VALUES (?,?,?,?,?,?)", (tid, pid,doctor_id,disease,conduct,tre,))
+
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview, "Treatments")
+
+        except Exception as a:
+            messagebox.showerror("Error", a.args[0])
+
+    ##deletion
+    def delete_info():
+        try:
+            tid = int(entry_treatment_id.get())
+
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
+
+            conn.execute('PRAGMA foreign_keys = ON')
+            cursor.execute("DELETE FROM Treatments WHERE treatment_id=? and doctor_id=?;", (tid,doctor_id,))
+
+            conn.commit()
+            conn.close()
+            messagebox.showinfo("success", "success")
+
+            refresh_treeview(treeview, "Treatments")
+
+        except Exception as a:
+            messagebox.showerror("Error", a.args[0])
+
+
+
+    button2 = tk.Button(view_window, text=" Modify treatments ",
+                        command=lambda: modify_info())
+    button3 = tk.Button(view_window, text=" Insert a new record", command=lambda: insert_info())
+    button4 = tk.Button(view_window, text=" Discard treatment with treatment_id ", command=lambda: delete_info())
+
+
+    # Place the buttons vertically
+    button2.pack(side=tk.TOP, padx=10, pady=15)
+    button3.pack(side=tk.TOP, padx=10, pady=15)
+    button4.pack(side=tk.TOP, padx=10, pady=15)
+
+    refresh_treeview(treeview, "Treatments")
+
+
+    view_window.mainloop()
 
 def doctor_application_entry_window_with_info():
     main_window = tk.Tk()
@@ -486,14 +664,15 @@ def doctor_application_entry_window_with_info():
     t = cursor.execute("SELECT doctor_id from Doctors where username=?;", (username,))
     id = t.fetchall()
     doctor_id = id[0][0]
+    conn.close()
     # Create four parallel buttons
-
+    button1 = tk.Button(main_window, text="Treatments", command=lambda: Treatment(main_window))
     button2 = tk.Button(main_window, text="self info", command=lambda: self_info(main_window))
     button4 = tk.Button(main_window, text="Workbench", command=lambda: workbench(main_window))
     button6 = tk.Button(main_window, text="logout", command=lambda: logout(main_window))
 
     # Place the buttons vertically
-
+    button1.pack(side=tk.TOP, padx=10, pady=15)
     button2.pack(side=tk.TOP, padx=10, pady=15)
     button4.pack(side=tk.TOP, padx=10, pady=15)
     button6.pack(side=tk.TOP, padx=10, pady=15)
