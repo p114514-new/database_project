@@ -156,6 +156,7 @@ def Responsibility(main_window):
             cursor.execute("INSERT INTO Nurse_Patient_Room VALUES (?,?,?)", (nurse_id, pid, rid))
             cursor.execute("UPDATE Patients SET room_id=?  WHERE patient_id = ?;", (rid, pid))
             conn.commit()
+
             conn.close()
             messagebox.showinfo("success", "success")
 
@@ -175,10 +176,11 @@ def Responsibility(main_window):
             cursor.execute("DELETE FROM Nurse_Patient_Room WHERE patient_id=?;", (pid,))
             cursor.execute("UPDATE Patients SET room_id=null  WHERE patient_id = ?;", (pid,))
             conn.commit()
+
             conn.close()
             messagebox.showinfo("success", "success")
-
             refresh_treeview(treeview, "Nurse_Patient_Room")
+
 
         except Exception as a:
             messagebox.showerror("Error", a.args[0])
