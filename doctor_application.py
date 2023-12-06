@@ -600,7 +600,8 @@ def Treatment(main_window):
             disease = entry_disease.get()
             conduct = entry_conducted_tests.get()
             tre = entry_treatment.get()
-
+            conn = sqlite3.connect('hospital_database.db')
+            cursor = conn.cursor()
             conn.execute('PRAGMA foreign_keys = ON')
 
             cursor.execute("INSERT INTO Treatments VALUES (?,?,?,?,?,?)", (tid, pid,doctor_id,disease,conduct,tre,))
