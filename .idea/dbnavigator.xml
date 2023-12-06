@@ -24,10 +24,8 @@
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
     <open-files>
-      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Nurses" />
-      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Doctors" />
-      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Departments" />
-      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Login" />
+      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Treatments" />
+      <object connection-id="e9dfd35b-05c4-42e1-88ce-cfe2b457219e" object-ref="schemas/main/tables/Patients" />
     </open-files>
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
@@ -85,7 +83,7 @@
           <deprecated-pwd value="" />
         </database>
         <properties>
-          <auto-commit value="false" />
+          <auto-commit value="true" />
         </properties>
         <ssh-settings>
           <active value="false" />

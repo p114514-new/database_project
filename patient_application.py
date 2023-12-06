@@ -246,34 +246,41 @@ def Modify_self_info(application_window):
     from main import setscreen
     setscreen(modify_window, 800, 600)
 
+    # get the original data
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM Patients WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+
     # Name
     label_name = tk.Label(modify_window, text="name:")
     label_name.place(x=120, y=150)
-    entry_name = tk.Entry(modify_window, width=30)
+    entry_name = tk.Entry(modify_window, width=30,textvariable=tk.StringVar(modify_window, value=result[1]))
     entry_name.place(x=220, y=150)
 
     # Gender
     label_gender = tk.Label(modify_window, text="gender:")
     label_gender.place(x=120, y=200)
-    entry_gender = tk.Entry(modify_window, width=30)
+    entry_gender = tk.Entry(modify_window, width=30,textvariable=tk.StringVar(modify_window, value=result[2]))
     entry_gender.place(x=220, y=200)
 
     # Address
     label_address = tk.Label(modify_window, text="address:")
     label_address.place(x=120, y=250)
-    entry_address = tk.Entry(modify_window, width=30)
+    entry_address = tk.Entry(modify_window, width=30,textvariable=tk.StringVar(modify_window, value=result[5]))
     entry_address.place(x=220, y=250)
 
     # Contact number
     label_contact_number = tk.Label(modify_window, text="contact number:")
     label_contact_number.place(x=120, y=300)
-    entry_contact_number = tk.Entry(modify_window, width=30)
+    entry_contact_number = tk.Entry(modify_window, width=30,textvariable=tk.StringVar(modify_window, value=result[6]))
     entry_contact_number.place(x=220, y=300)
 
     # Birth_date,Age
     label_birth_date = tk.Label(modify_window, text="birth data:")
     label_birth_date.place(x=120, y=350)
-    entry_birth_date = tk.Entry(modify_window, width=30)
+    entry_birth_date = tk.Entry(modify_window, width=30,textvariable=tk.StringVar(modify_window, value=result[3]))
     entry_birth_date.place(x=220, y=350)
 
     label_age = tk.Label(modify_window, text="")
@@ -302,8 +309,8 @@ def Modify_self_info(application_window):
             name = entry_name.get()
             gender = entry_gender.get()
             birth_date = entry_birth_date.get()
-            # birth_date0 = datetime.strptime(patient_birth_date, '%Y-%m-%d')
-            # age = calculate_age(birth_date0)
+            birth_date0 = datetime.strptime(birth_date, '%Y-%m-%d')
+            age = calculate_age(birth_date0)
             address = entry_address.get()
             contact_number = entry_contact_number.get()
             if not validate_address(address):
@@ -328,9 +335,9 @@ def Modify_self_info(application_window):
                 # username = t.fetchall()
 
                 cursor.execute(
-                    "UPDATE Patients SET patient_name=?, gender=?, birth_date=?, address=?, contact_number=?"
+                    "UPDATE Patients SET patient_name=?, gender=?, birth_date=?,age=?, address=?, contact_number=?"
                     " WHERE username = ?;",
-                    (name, gender, birth_date, address, contact_number, username))
+                    (name, gender, birth_date, age, address, contact_number, username))
 
                 cursor.execute("UPDATE Login SET realname=? WHERE username = ?;", (name, username))
 
@@ -357,84 +364,271 @@ def Modify_self_info(application_window):
     button5.place(x=350, y=450)
     modify_window.mainloop()
 
-
-def inquire_treatment(application_window):
-    application_window.destroy()
-    inquire_window = tk.Tk()
-    inquire_window.title("Treatment Inquire")
+def inquire_treatment(main_window):
+    main_window.destroy()
+    view_window = tk.Tk()
+    view_window.title("View Treatments")
     from main import setscreen
-    setscreen(inquire_window, 400, 500)
+    setscreen(view_window, 800, 600)
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
 
-    def inquire_treatment_function():
-        global patient_id
+    res = cursor.execute("SELECT * FROM Treatments WHERE patient_id=?", (patient_id,))
+
+    table_data = res.fetchall()
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(view_window)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(view_window)
+    conn.close()
+
+    if table_data:
+        # Create a pandas DataFrame from the table data
+        df = pd.DataFrame(table_data)
+        df.columns = [description[0] for description in cursor.description]
+
+        # Destroy and recreate the columns in the Treeview widget
+        treeview.destroy()
+        treeview = tk.ttk.Treeview(view_window)
+
+        # Create the column headings in the Treeview widget
+        table_columns = df.columns
+        treeview["columns"] = tuple(table_columns)
+        for column in table_columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+        # Insert the table data into the Treeview widget
+        for i, row in df.iterrows():
+            treeview.insert("", "end", values=tuple(row))
+    else:
+        # No data returned, display a message
+        message_label.config(text="No data available for this table.")
+        message_label.pack()
+
+        # No data available, but we can still refresh the column names
+        columns = [description[0] for description in cursor.description]
+        treeview["columns"] = tuple(columns)
+        for column in columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+    # Pack the Treeview widget
+    treeview.pack(expand=True, fill=tk.BOTH)
+
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+    exit_button.pack(side=tk.BOTTOM)
+
+    refresh_button = tk.Button(view_window, text="refresh", command=lambda: refresh_treatment_info())
+    refresh_button.pack(side=tk.BOTTOM)
+
+    def refresh_treatment_info():
+        # Create a connection to the SQLite database
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
-        conn.execute('PRAGMA foreign_keys = ON')
-        t = cursor.execute("SELECT * from Treatments where patient_id=?;", (patient_id,))
-        result = t.fetchall()
 
-        if result:
-            # 创建一个标签来显示查询结果
-            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n\n\n" + str(result),
-                                    font=("Helvetica", 12))
+        res = cursor.execute("SELECT * FROM Treatments WHERE patient_id=?", (patient_id,))
 
-            label_result.pack()
-        else:
-            messagebox.showerror("Error", "No treatments found for this patient ID")
-
+        table_data = res.fetchall()
         conn.close()
 
-    # Create buttons
-    button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_treatment_function())
-    button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
+        if table_data:
+            # Create a pandas DataFrame from the table data
+            df = pd.DataFrame(table_data)
+            df.columns = [description[0] for description in cursor.description]
 
-    button_inquire.place(x=100, y=340)
-    button_exit.place(x=180, y=340)
-    inquire_window.mainloop()
+            # Destroy and recreate the columns in the Treeview widget
+            treeview.delete(*treeview.get_children())
 
+            # Insert the table data into the Treeview widget
+            for i, row in df.iterrows():
+                treeview.insert("", "end", values=tuple(row))
+        else:
+            # No data returned, display a message
+            message_label.config(text="No data available for this table.")
+            message_label.pack()
 
-def show_info(application_window):
-    application_window.destroy()
-    info_window = tk.Tk()
-    info_window.title("Show info")
+            # No data available, but we can still refresh the column names
+            columns = [description[0] for description in cursor.description]
+            treeview["columns"] = tuple(columns)
+            for column in columns:
+                treeview.heading(column, text=column)
+                treeview.column(column, width=100)
+
+    view_window.mainloop()
+
+# def inquire_treatment(application_window):
+#     application_window.destroy()
+#     inquire_window = tk.Tk()
+#     inquire_window.title("Treatment Inquire")
+#     from main import setscreen
+#     setscreen(inquire_window, 400, 500)
+#
+#     def inquire_treatment_function():
+#         global patient_id
+#         conn = sqlite3.connect('hospital_database.db')
+#         cursor = conn.cursor()
+#         conn.execute('PRAGMA foreign_keys = ON')
+#         t = cursor.execute("SELECT * from Treatments where patient_id=?;", (patient_id,))
+#         result = t.fetchall()
+#
+#         if result:
+#             # 创建一个标签来显示查询结果
+#             label_result = tk.Label(inquire_window, text="Treatments for the patient: \n\n\n" + str(result),
+#                                     font=("Helvetica", 12))
+#
+#             label_result.pack()
+#         else:
+#             messagebox.showerror("Error", "No treatments found for this patient ID")
+#
+#         conn.close()
+#
+#     # Create buttons
+#     button_inquire = tk.Button(inquire_window, text="Inquire", command=lambda: inquire_treatment_function())
+#     button_exit = tk.Button(inquire_window, text="Exit", command=lambda: exit_to_entry(inquire_window))
+#
+#     button_inquire.place(x=100, y=340)
+#     button_exit.place(x=180, y=340)
+#     inquire_window.mainloop()
+
+def show_info(main_window):
+    main_window.destroy()
+    view_window = tk.Tk()
+    view_window.title("View Table")
     from main import setscreen
-    setscreen(info_window, 800, 600)
+    setscreen(view_window, 1200, 600)
+    # Create a connection to the SQLite database
+    conn = sqlite3.connect('hospital_database.db')
+    cursor = conn.cursor()
 
-    def show_info_function():
-        global patient_id
+    res = cursor.execute("select * from Patients where Patients.username=?", (username,))
+
+    table_data = res.fetchall()
+    # Create a tkinter Treeview widget
+    treeview = tk.ttk.Treeview(view_window)
+
+    # Create a label for displaying messages
+    message_label = tk.Label(view_window)
+    conn.close()
+
+    if table_data:
+        # Create a pandas DataFrame from the table data
+        df = pd.DataFrame(table_data)
+        df.columns = [description[0] for description in cursor.description]
+
+        # Destroy and recreate the columns in the Treeview widget
+        treeview.destroy()
+        treeview = tk.ttk.Treeview(view_window)
+
+        # Create the column headings in the Treeview widget
+        table_columns = df.columns
+        treeview["columns"] = tuple(table_columns)
+        for column in table_columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+        # Insert the table data into the Treeview widget
+        for i, row in df.iterrows():
+            treeview.insert("", "end", values=tuple(row))
+    else:
+        # No data returned, display a message
+        message_label.config(text="No data available for this table.")
+        message_label.pack()
+
+        # No data available, but we can still refresh the column names
+        columns = [description[0] for description in cursor.description]
+        treeview["columns"] = tuple(columns)
+        for column in columns:
+            treeview.heading(column, text=column)
+            treeview.column(column, width=100)
+
+            # Pack the Treeview widget
+    treeview.pack(expand=True, fill=tk.BOTH)
+
+    exit_button = tk.Button(view_window, text="exit", command=lambda: exit_to_entry(view_window))
+    exit_button.pack(side=tk.BOTTOM)
+
+    refresh_button = tk.Button(view_window, text="refresh", command=lambda: refresh_self_info())
+    refresh_button.pack(side=tk.BOTTOM)
+
+    def refresh_self_info():
+        # Create a connection to the SQLite database
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
-        conn.execute('PRAGMA foreign_keys = ON')
-        id = patient_id
-        t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
-        result = t.fetchall()
 
-        # get column names
-        cursor.execute("SELECT * from Patients")
-        col_name_list = [t[0] for t in cursor.description]
+        res = cursor.execute("select * from Patients where username=?", (username,))
 
-        if result:
-            # 创建一个字符串来保存格式化后的查询结果
-            result_str = "Patient Information: \n"
-            label_result = tk.Label(info_window, text=result_str)
-            label_result.place(x=180, y=100)
-            for idx, zipped in enumerate(zip(col_name_list, result[0])):
-                result_str = '          ' + zipped[0] + ": " + str(zipped[1]) + "\n"
-                # 创建一个标签来显示查询结果
-                label_result = tk.Label(info_window, text=result_str,font=("Helvetica", 12))
-                label_result.place(x=180, y=150 + idx * 30)
-        else:
-            messagebox.showerror("Error", "No such patient found")
-
+        table_data = res.fetchall()
         conn.close()
 
-    # Create buttons
-    button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
-    button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
+        if table_data:
+            # Create a pandas DataFrame from the table data
+            df = pd.DataFrame(table_data)
+            df.columns = [description[0] for description in cursor.description]
 
-    button_inquire.place(x=180, y=500)
-    button_exit.place(x=260, y=500)
-    info_window.mainloop()
+            # Destroy and recreate the columns in the Treeview widget
+            treeview.delete(*treeview.get_children())
+
+            # Insert the table data into the Treeview widget
+            for i, row in df.iterrows():
+                treeview.insert("", "end", values=tuple(row))
+        else:
+            # No data returned, display a message
+            message_label.config(text="No data available for this table.")
+            message_label.pack()
+
+            # No data available, but we can still refresh the column names
+            columns = [description[0] for description in cursor.description]
+            treeview["columns"] = tuple(columns)
+            for column in columns:
+                treeview.heading(column, text=column)
+                treeview.column(column, width=100)
+
+    view_window.mainloop()
+# def show_info(application_window):
+#     application_window.destroy()
+#     info_window = tk.Tk()
+#     info_window.title("Show info")
+#     from main import setscreen
+#     setscreen(info_window, 800, 600)
+#
+#     def show_info_function():
+#         global patient_id
+#         conn = sqlite3.connect('hospital_database.db')
+#         cursor = conn.cursor()
+#         conn.execute('PRAGMA foreign_keys = ON')
+#         id = patient_id
+#         t = cursor.execute("SELECT * from Patients where patient_id=?;", (id,))
+#         result = t.fetchall()
+#
+#         # get column names
+#         cursor.execute("SELECT * from Patients")
+#         col_name_list = [t[0] for t in cursor.description]
+#
+#         if result:
+#             # 创建一个字符串来保存格式化后的查询结果
+#             result_str = "Patient Information: \n"
+#             label_result = tk.Label(info_window, text=result_str)
+#             label_result.place(x=180, y=100)
+#             for idx, zipped in enumerate(zip(col_name_list, result[0])):
+#                 result_str = '          ' + zipped[0] + ": " + str(zipped[1]) + "\n"
+#                 # 创建一个标签来显示查询结果
+#                 label_result = tk.Label(info_window, text=result_str,font=("Helvetica", 12))
+#                 label_result.place(x=180, y=150 + idx * 30)
+#         else:
+#             messagebox.showerror("Error", "No such patient found")
+#
+#         conn.close()
+#
+#     # Create buttons
+#     button_inquire = tk.Button(info_window, text="Inquire", command=lambda: show_info_function())
+#     button_exit = tk.Button(info_window, text="Exit", command=lambda: exit_to_entry(info_window))
+#
+#     button_inquire.place(x=180, y=500)
+#     button_exit.place(x=260, y=500)
+#     info_window.mainloop()
 
 def inquire_nurse(application_window):
     application_window.destroy()
@@ -442,7 +636,13 @@ def inquire_nurse(application_window):
     inquire_window.title("Nurse Inquire")
     from main import setscreen
     setscreen(inquire_window, 400, 500)
+
     def inquire_nurse_function():
+        # 删除inquire_window中的所有Label小部件
+        for widget in inquire_window.winfo_children():
+            if isinstance(widget, tk.Label):
+                widget.destroy()
+
         global patient_id
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
@@ -451,10 +651,14 @@ def inquire_nurse(application_window):
         result = t.fetchall()
 
         if result:
+            # 创建一个空字符串来存储格式化后的查询结果
+            result_str = ""
+            for i, nurse_id in enumerate(result, start=1):
+                # 在每个查询结果前添加"Nurse"和序号
+                result_str += "Nurse{}: {}\n".format(i, nurse_id[0])
             # 创建一个标签来显示查询结果
-            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n\n\n" + str(result),
+            label_result = tk.Label(inquire_window, text="Nurse ID for the patient: \n\n\n" + result_str,
                                     font=("Helvetica", 12))
-
             label_result.pack()
         else:
             messagebox.showerror("Error", "No nurse found for this patient ID")
@@ -477,6 +681,10 @@ def inquire_room(application_window):
     setscreen(inquire_window, 400, 500)
 
     def inquire_room_function():
+        # 删除inquire_window中的所有Label小部件
+        for widget in inquire_window.winfo_children():
+            if isinstance(widget, tk.Label):
+                widget.destroy()
         global patient_id
         conn = sqlite3.connect('hospital_database.db')
         cursor = conn.cursor()
@@ -485,10 +693,14 @@ def inquire_room(application_window):
         result = t.fetchall()
 
         if result:
+            # 将查询结果转换为集合，删除重复的房间号
+            result_set = set(result)
+            # 将查询结果转换为字符串，并删除括号、引号和大括号
+            result_str = str(result_set).replace('(', '').replace(')', '').replace("'", "").replace("{", "").replace(
+                "}", "").replace(",","")
             # 创建一个标签来显示查询结果
-            label_result = tk.Label(inquire_window, text="Room ID for the patient: \n\n\n" + str(result),
-                                    font=("Helvetica", 12))
-
+            label_result = tk.Label(inquire_window, text="Room ID for the patient: \n\n\n" + result_str,
+                                    font=("Helvetica", 15))
             label_result.pack()
         else:
             messagebox.showerror("Error", "No room found for this patient ID")
@@ -538,7 +750,7 @@ def show_departments(application_window):
     department_treeview.heading("two", text="Department ID")
 
     for i in departments:
-        department_treeview.insert('', 'end', text=i[0], values=(i[0], i[1]))
+        department_treeview.insert('', 'end',  values=(i[0], i[1]))
 
     department_treeview.pack()
 
@@ -581,7 +793,9 @@ def show_departments(application_window):
         # Insert the doctors into the doctor_treeview
         for i in doctors:
             doctor_treeview.insert('', 'end', text=i[0], values=(i[0], i[1]))
-
+    # Add a Label widget for the user to know where to input the department ID
+    department_id_label = tk.Label(department_frame, text="Input Department ID:")
+    department_id_label.pack()
     # Add an Entry widget for the user to input the department ID
     department_id_entry = tk.Entry(department_frame)
     department_id_entry.pack()
