@@ -506,7 +506,7 @@ def doctor_application_entry_window(realname, usernamepar):
     global doctor_department_id
     global username
     username = usernamepar
-    nurse_name = realname
+    doctor_name = realname
     main_window = tk.Tk()
     main_window.title("Main Application")
     from main import setscreen
@@ -533,41 +533,39 @@ def doctor_application_entry_window(realname, usernamepar):
             # Set window size to 600x400
 
             # Create the new realname label and entry
-            label_nurse_id = tk.Label(main_window, text="nurse_id :")
-            label_nurse_id.place(x=120, y=150)
-            entry_nurse_id = tk.Entry(main_window, width=30)
-            entry_nurse_id.place(x=220, y=150)
+            label_doctor_id = tk.Label(main_window, text="doctor_id :")
+            label_doctor_id.place(x=120, y=150)
+            entry_doctor_id = tk.Entry(main_window, width=30)
+            entry_doctor_id.place(x=220, y=150)
 
-            label_nurse_gender = tk.Label(main_window, text="gender :")
-            label_nurse_gender.place(x=120, y=200)
-            entry_nurse_gender = tk.Entry(main_window, width=30)
-            entry_nurse_gender.place(x=220, y=200)
+            label_doctor_department_id = tk.Label(main_window, text="department_id :")
+            label_doctor_department_id.place(x=120, y=200)
+            entry_doctor_department_id = tk.Entry(main_window, width=30)
+            entry_doctor_department_id.place(x=220, y=200)
 
             # Create a connection to the SQLite database
             def checkAccount():
-                nurse_id = entry_nurse_id.get()
-                nurse_gender = entry_nurse_gender.get()
-                if nurse_gender != 'male' and nurse_gender != 'female':
-                    messagebox.showerror("Error", "Invalid Input for gender")
-                    return False
+                doctor_id = entry_doctor_id.get()
+                doctor_department_id = entry_doctor_department_id.get()
                 try:
-                    nurse_id = int(nurse_id)
+                    doctor_id = int(doctor_id)
                 except ValueError:
                     messagebox.showerror("Error", "Invalid Input")
                     return False
                 conn = sqlite3.connect('hospital_database.db')
                 c = conn.cursor()
+                conn.execute('PRAGMA foreign_keys = ON')
                 try:
                     # Enable foreign key constraints
-                    cursor = c.execute("select nurse_id,nurse_name,gender  from Nurses where Nurses.username=?",
+                    cursor = c.execute("select doctor_id,doctor_name,department_id from Doctors where Doctors.username=?",
                                        (username,))
                     conn.commit()
                     result = cursor.fetchall()
-                    print(result)
+                    # print(result)
                     if not result:
                         try:
-                            c.execute("INSERT INTO Nurses VALUES (?,?,?,?)",
-                                      (nurse_id, realname, nurse_gender, username))
+                            c.execute("INSERT INTO Doctors VALUES (?,?,?,?)",
+                                      (doctor_id, realname, doctor_department_id, username))
                             conn.commit()
                             c.close()
                             exit_to_entry(main_window)
