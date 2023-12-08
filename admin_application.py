@@ -438,6 +438,8 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
         # list the appearance of the foreign key in all tables
         tables_having_this_key = [x for x in column_names if
                                   column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
+        if column_name in ['patient_name', 'nurse_name', 'staff_name', 'doctor_name', 'realname']:
+            tables_having_this_key = ['Patients', 'Nurses', 'Hospital_Staff', 'Doctors', 'Login']
         result = messagebox.askquestion("Dangerous Operation",
                                         "Modifying foreign keys is a dangerous approach. \n" +
                                         "All tables having this key are: " + str(tables_having_this_key) +
@@ -498,10 +500,12 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
 
 def is_key(table_name, column_name, primary_keys):
     foreign_keys = defaultdict(list)
-    foreign_keys['Patients'] = ['room_id']
-    foreign_keys['Doctors'] = ['department_id']
-    foreign_keys['Treatments'] = ['room_id']
-    foreign_keys['Nurse_Patient_Room'] = ['room_id']
+    foreign_keys['Patients'] = ['room_id', 'patient_name', 'username']
+    foreign_keys['Doctors'] = ['department_id', 'username']
+    foreign_keys['Nurses'] = ['nurse_name', 'username']
+    foreign_keys['Treatments'] = ['patient_id', 'doctor_id']
+    foreign_keys['Nurse_Patient_Room'] = ['room_id', 'nurse_id', 'patient_id']
+    foreign_keys['Hospital_Staff'] = ['staff_name', 'username']
     if column_name in primary_keys[table_name]:
         return 1
     elif column_name in foreign_keys[table_name]:
