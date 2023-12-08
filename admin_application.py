@@ -513,6 +513,18 @@ def is_key(table_name, column_name, primary_keys):
 
 
 def is_valid_value(column_name, new_value, data_type):
+    if column_name == 'gender':
+        if new_value.lower() in ['male', 'female']:
+            return True
+        else:
+            return False
+
+    if column_name == 'change_status':
+        if new_value in ['+', '?', '-']:
+            return True
+        else:
+            return False
+
     if new_value == '':
         return False
 
@@ -551,18 +563,6 @@ def is_valid_value(column_name, new_value, data_type):
             datetime.datetime.strptime(new_value, '%Y-%m-%d')
             return True
         except ValueError:
-            return False
-
-    if column_name == 'gender':
-        if new_value.lower() in ['male', 'female']:
-            return True
-        else:
-            return False
-
-    if column_name == 'change_status':
-        if new_value in ['+', '?', '-']:
-            return True
-        else:
             return False
 
     return True  # Assume any other data type is valid
