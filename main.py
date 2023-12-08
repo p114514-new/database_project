@@ -137,19 +137,6 @@ def verify_login(entry_username, entry_password, window):
         messagebox.showerror("Login Failed", "Invalid characters in the username")
         return -1
 
-    # Check if the password meets the length requirement
-    if len(password) < 8:
-        messagebox.showerror("Login Failed", "Password should be at least 8 characters long")
-        return -1
-
-    # Check if the password contains at least one digit, one lowercase, and one uppercase letter
-    if not re.search(r'\d', password) or not re.search(r'[a-z]', password) or not re.search(r'[A-Z]', password):
-        messagebox.showerror("Login Failed",
-                             "Password should contain at least one digit, one lowercase, and one uppercase letter")
-        return -1
-
-    # Perform other basic login validation checks here...
-
     # Connect to the database
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
@@ -186,9 +173,9 @@ def system_entry(entry_username, entry_password, window, usn):
         print(realname, 'ok1')
 
     except sqlite3.Error as e:
-        messagebox.showerror("Error", e.args[0])
+        print("Error", e.args[0])
     except Exception as ee:
-        messagebox.showerror("Error", ee.args[0])
+        print("Error", ee.args[0])
 
     user_access = verify_login(entry_username, entry_password, window)
 
