@@ -1,3 +1,4 @@
+import datetime
 import sqlite3
 import tkinter as tk
 from collections import defaultdict
@@ -427,6 +428,7 @@ def prompt_for_value(old_value):
 def update_value(treeview, values, new_value, table_name, column_name, primary_keys, cell_value):
     conn = sqlite3.connect('hospital_database.db')
     cursor = conn.cursor()
+    column_names = get_all_attributes()
 
     # Check if the column is a primary key
     if is_key(table_name, column_name, primary_keys) == 1:
@@ -434,7 +436,6 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
         return
     elif is_key(table_name, column_name, primary_keys) == 2:
         # list the appearance of the foreign key in all tables
-        column_names = get_all_attributes()
         tables_having_this_key = [x for x in column_names if
                                   column_name in column_names[x] and x not in ['Buffer1', 'Buffer2']]
         result = messagebox.askquestion("Dangerous Operation",
@@ -455,8 +456,15 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
             messagebox.showwarning("Invalid Operation", "You are cancelling your admin position.")
             return
 
+    # get the data type of the column
+    query = f"PRAGMA table_info({table_name});"
+    cursor.execute(query)
+    attributes = cursor.fetchall()
+    attributes = [attribute[2] for attribute in attributes]
+    data_type = attributes[column_names[table_name].index(column_name)]
+
     # Check if the new value is valid
-    if not is_valid_value(column_name, new_value):
+    if not is_valid_value(column_name, new_value, data_type):
         messagebox.showwarning("Invalid Value", "The entered value is not valid.")
         return
 
@@ -474,6 +482,7 @@ def update_value(treeview, values, new_value, table_name, column_name, primary_k
         primary_key_values.append(values[i])
 
     try:
+        cursor.execute("PRAGMA foreign_keys = ON")
         cursor.execute(query, (new_value, *primary_key_values))
         print(query, (new_value, *primary_key_values))
         conn.commit()
@@ -503,11 +512,60 @@ def is_key(table_name, column_name, primary_keys):
         return 0
 
 
-def is_valid_value(column_name, new_value):
-    # Implement the logic to check if the new value is valid for the column
-    # Replace with your own implementation
-    pass
-    return True
+def is_valid_value(column_name, new_value, data_type):
+    if new_value == '':
+        return False
+
+    if data_type == 'TEXT':
+        return True
+
+    if data_type == 'INTEGER':
+        try:
+            int(new_value)
+            return True
+        except ValueError:
+            return False
+
+    if data_type == 'REAL':
+        try:
+            float(new_value)
+            return True
+        except ValueError:
+            return False
+
+    if data_type == 'NUMERIC':
+        try:
+            float(new_value)
+            return True
+        except ValueError:
+            return False
+
+    if data_type == 'BOOLEAN':
+        if new_value.lower() in ['true', 'false']:
+            return True
+        else:
+            return False
+
+    if data_type == 'DATE':
+        try:
+            datetime.datetime.strptime(new_value, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
+
+    if column_name == 'gender':
+        if new_value.lower() in ['male', 'female']:
+            return True
+        else:
+            return False
+
+    if column_name == 'change_status':
+        if new_value in ['+', '?', '-']:
+            return True
+        else:
+            return False
+
+    return True  # Assume any other data type is valid
 
 
 def modify_tables_interface(main_window):
