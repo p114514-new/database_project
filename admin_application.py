@@ -941,7 +941,7 @@ def add_rooms(main_window):
     main_window.destroy()
 
     view_window = tk.Tk()
-    view_window.title("Confirm Doctor Table Info")
+    view_window.title("Add Rooms")
 
     from main import setscreen
     setscreen(view_window, 800, 600)
